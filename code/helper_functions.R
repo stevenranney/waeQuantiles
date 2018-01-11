@@ -42,3 +42,9 @@ EstLinQuantRegCoefDist <- function(data, n, numSamples, tau = 0.75){
     names(regCoefs) <- c("intercept", "slope")
     return(regCoefs)
   }
+
+# Calculate standard error of a vector
+
+std_error <- function(x){
+  sd(x)/sqrt(length(x))
+}
