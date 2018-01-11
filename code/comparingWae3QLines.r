@@ -1,5 +1,7 @@
 ################################################################################
-# This code is annotated below.  It 
+# Code to accompany the manuscript 
+# Quantile Regression Estimates of Body Weight for Walleye
+# S. H. Ranney, 2018
 ################################################################################ 
   
 require(quantreg)
@@ -295,7 +297,7 @@ regVals <-
 
 #Write tables to file
 regVals %>%
-  write.csv(paste0("output/", Sys.Date(), "_regVals.csv"))
+  write.csv(paste0("output/", Sys.Date(), "_regVals.csv"), row.names = F)
 
 # Do the 95% estimates of slope for each population overlap the slope value for the reference population?
 
@@ -306,6 +308,35 @@ regVals <-
                                smean < (regVals %>% filter(pop == "Reference") %>% .$s97.5), TRUE, FALSE)) %>%
   mutate(pop = pop %>% factor(levels = c("Reference", "GA 1", "GA 2", "GA 3", 
                                             "SD 1", "SD 2", "SD 3")))
+
+# IF REFERENCE POPULATION SLOPE AND INTERCEPT 95% CI DO NOT OVERLAP WITH POPULATION
+# LEVEL SLOPE AND INTERCEPT, DETERMINE WHETHER THE INTERVAL AROUND THE DIFFERENCE
+# IN SLOPES CONTAINS ZERO; FROM POPE AND KRUSE 2007 AIFFD, page 433 (i.e., rows 
+# that are FALSE in regVals$is_slope_overlap)
+
+
+#Fx to return the interval around the differences in slopes
+
+interval_around_differences <- function(population, reference){
+  
+  upper <- (mean(reference$slope) - mean(population$slope)) + (1.96*sqrt(std_error(reference$slope)^2 + std_error(population$slope)^2))
+  lower <- (mean(reference$slope) - mean(population$slope)) - (1.96*sqrt(std_error(reference$slope)^2 + std_error(population$slope)^2))
+  
+  data.frame(upper = upper, 
+             lower = lower) %>%
+    return()
+}
+
+slope_overlap <- 
+  list(ga2Dist, ga3Dist, ga4Dist, 
+     sd4Dist, sd13Dist, sd25Dist) %>%
+  map_dfr(interval_around_differences, refDist) %>%
+  mutate(pop = c("GA 1", "GA 2", "GA 3", "SD 1", "SD 2", "SD 3")) %>%
+  full_join(regVals)
+
+slope_overlap %>%
+  write.csv(paste0("output/", Sys.Date(), "_slope_overlap.csv"), row.names = F)
+  
 
 
 #-----------------------------------------------------------  
@@ -332,6 +363,7 @@ regVals %>%
                                 "SD 1" = 15,
                                 "SD 2" = 16, 
                                 "SD 3" = 17)) +
+  guides(shape = guide_legend(nrow = 1)) +
   theme(legend.position = "bottom", 
         legend.background = element_blank(),
         legend.key = element_blank(),
@@ -340,32 +372,9 @@ regVals %>%
         panel.background = element_blank(), 
         axis.line = element_line(colour = "black"))
 
+ggsave(paste0("output/", Sys.Date(), "_main_fig.png"))
+
 
 #-----------------------------------------------------------  
-
-
-       
-# IF REFERENCE POPULATION SLOPE AND INTERCEPT 95% CI DO NOT OVERLAP WITH POPULATION
-# LEVEL SLOPE AND INTERCEPT, DETERMINE WHETHER THE INTERVAL AROUND THE DIFFERENCE
-# IN SLOPES CONTAINS ZERO; FROM POPE AND KRUSE 2007 AIFFD, page 433 (i.e., rows 
-# that are FALSE in regVals$is_slope_overlap)
-
-
-#Fx to return the interval around the differences in slopes
-
-interval_around_differences <- function(population, reference){
-  
-  upper <- (mean(reference$slope) - mean(population$slope)) + (1.96*sqrt(std_error(reference$slope)^2 + std_error(population$slope)^2))
-  lower <- (mean(reference$slope) - mean(population$slope)) - (1.96*sqrt(std_error(reference$slope)^2 + std_error(population$slope)^2))
-  
-  data.frame(upper = upper, 
-             lower = lower) %>%
-    return()
-}
-
-list(ga2Dist, ga3Dist, ga4Dist, 
-  sd4Dist, sd13Dist, sd25Dist) %>%
-  map_dfr(interval_around_differences, refDist) %>%
-  mutate(pop = c("GA 1", "GA 2", "GA 3", "SD 1", "SD 2", "SD 3"))
 
 
