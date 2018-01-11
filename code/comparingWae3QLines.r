@@ -3,8 +3,13 @@
 ################################################################################ 
   
   require(quantreg)
-  require(gplots)
-  
+  require(ggplot2)
+  library(purrr)
+  library(dplyr)
+  library(gplots)
+
+  set.seed(256)
+
   setwd('C:/Users/Steven Harris Ranney/Desktop/Manuscripts/Ws - Quantiles/code')
 
   #read in and manipulate the WAE dataset from Ranney et al. 2010 and 2011; data
@@ -100,6 +105,7 @@
   wae.mod.25 <- nlrq(weight~alpha*length^beta, data=wae, tau=0.25,                         #Requires different parm. ests. for alpha and beta
                      start=list(alpha=0.00001, beta=3))
 
+  
   #Build linear quantile regression models
   wae.linMod.75 <- rq(log10(weight)~log10(length), data=wae, tau=0.75)
   wae.linMod.5 <- rq(log10(weight)~log10(length), data=wae, tau=0.5)
@@ -107,7 +113,7 @@
 
  
   #Create a vector of lengths to include in plots
-#  x <- seq(165,735, by=10)#; x
+  x <- seq(165,735, by=10)#; x
 
   #plot data and all lines
 #  plot(weight~length, data=wae, xlab="Length (mm)", xlim=c(100, 800), ylim=c(0,6000), 
@@ -478,7 +484,7 @@
   slopeVals[,3] <- upperVals
                  
                  
-  par(mfrow=c(2,1))
+#  par(mfrow=c(1,1))
   #Plot slope and bootstrapped 95% confidence intervals on the same plot for all 
   #population data
   require(Hmisc)
@@ -486,7 +492,7 @@
        xlab=NA, xaxt="n", mar=c(0,4,4,2))
   abline(h=2.9)
   errbar(1:7, slopeVals[,2], yplus=slopeVals[,3], yminus=slopeVals[,1], add=T)
-  axis(1, 1:7, labels=c("Reference", "GA 1", "GA 2", "GA 3", "SD 1", "SD 2", "SD 4"))
+  axis(1, 1:7, labels=c("Reference", "GA 1", "GA 2", "GA 3", "SD 1", "SD 2", "SD 3"))
   abline(h=c(slopeVals[1,]), lty=c(2,1,2))               
 
   #Create a table of intercept coefficients and bootstrapped confidence intervals
@@ -526,17 +532,33 @@
        ylab="Intercept", xlab="Population", xaxt="n", mar=c(5,4,0,2))
   abline(h=-6.5)
   errbar(1:7, intVals[,2], yplus=intVals[,3], yminus=intVals[,1], add=T)
-  axis(1, 1:7, labels=c("Reference", "GA 1", "GA 2", "GA 3", "SD 1", "SD 2", "SD 4"))
+  axis(1, 1:7, labels=c("Reference", "GA 1", "GA 2", "GA 3", "SD 1", "SD 2", "SD 3"))
   abline(h=c(intVals[1,]), lty=c(2,1,2))               
   par(mfrow=c(1,1))
   
   
   #Combine the slope and intercept values into one table
-  regVals <- cbind(intVals, slopeVals)
+  regVals <- 
+    cbind(intVals %>%
+            rename(`int2.5` = `2.5`, 
+                   intmean = mean, 
+                   `int97.5` = `97.5`), 
+          slopeVals %>%
+            rename(`s2.5` = `2.5`, 
+                   smean = mean, 
+                   `s97.5` = `97.5`))
 #  write.csv(regVals, paste0("C:/Users/Steven Harris Ranney/Desktop/Manuscripts/Ws - Quantiles/", 
 #                      "/output/regVals.csv"))
 #  write.csv(wae.pred.values, paste0("C:/Users/Steven Harris Ranney/Desktop/Manuscripts/Ws - Quantiles/", 
 #                      "/output/wae.pred.values.csv"))
+  
+  # Do the 95% estimates of slope for each population overlap the slope value for the reference population?
+  regVals %>%
+    mutate(row_num = row_number(),
+           pop = row.names(regVals),
+           is_slope_overlap = ifelse(smean > regVals$s2.5[1] &
+                                 smean < regVals$s97.5[1], TRUE, FALSE))
+    
   
 
   #Plot all slope and intercept values on the same plot?  With horizontal and 
@@ -567,6 +589,30 @@
   (mean(refDist[,2])-mean(sd25Dist[,2]))+(1.96*sqrt(((sd(refDist[,2])/(sqrt(nrow(refDist))))^2+(sd(refDist[,2])/(sqrt(nrow(refDist))))^2)))
   (mean(refDist[,2])-mean(sd25Dist[,2]))-(1.96*sqrt(((sd(refDist[,2])/(sqrt(nrow(refDist))))^2+(sd(refDist[,2])/(sqrt(nrow(refDist))))^2)))
 
+  
+  std_error <- function(x){
+    sd(x)/sqrt(length(x))
+  }
+  
+
+  #Fx to return the interval around the differences in slopes
+  interval_around_differences <- function(population, reference){
+    
+    upper <- (mean(reference$slope) - mean(population$slope)) + (1.96*sqrt(std_error(reference$slope)^2 + std_error(population$slope)^2))
+    lower <- (mean(reference$slope) - mean(population$slope)) - (1.96*sqrt(std_error(reference$slope)^2 + std_error(population$slope)^2))
+    
+    data.frame(upper = upper, 
+               lower = lower) %>%
+      return()
+  }
+  
+  list(ga2Dist, ga3Dist, ga4Dist, 
+    sd4Dist, sd13Dist, sd25Dist) %>%
+    map_dfr(interval_around_differences, refDist) %>%
+    mutate(pop = c("GA1", "GA2", "GA3", "SD1", "SD2", "SD3"))
+  
+
+    #Create table of 
 
 
 
