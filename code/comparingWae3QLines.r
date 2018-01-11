@@ -316,7 +316,7 @@ ylab <- bquote(.("Intercept" ~ (beta[0])))
 
 regVals %>%
   ggplot(aes(x = smean, y = intmean, shape = pop)) +
-  geom_point() +
+  geom_point(size = 3) +
   geom_errorbar(aes(ymin = int2.5, ymax = int97.5), width = 0.01) +
   geom_errorbarh(aes(xmin = s2.5, xmax = s97.5), height = 0.07) + 
   scale_x_continuous(breaks = seq(3.0, 3.5, 0.05)) +
