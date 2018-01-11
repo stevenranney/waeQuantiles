@@ -16,7 +16,7 @@ set.seed(256)
 
 # Read in and manipulate the WAE dataset from Ranney et al. 2010 and 2011; data
 # filtering protocols have already been applied
-wae <- read.csv("data/waeClean.csv", header = T)
+wae <- read.csv("data/wae_clean.csv", header = T)
 
 # Assigns fish to a length category (Gabelhouse 1984)
 wae <- 
@@ -63,7 +63,7 @@ wae.pred.values %>%
 #-------------------------------------------------------------------------------
 # Read in independent data
 
-waeInd <- read.csv("data/WAE_independent.txt", header=T)
+waeInd <- read.csv("data/wae_independent.txt", header=T)
 
 # Assigns fish to a length category (Gabelhouse 1984)
 waeInd <- 
