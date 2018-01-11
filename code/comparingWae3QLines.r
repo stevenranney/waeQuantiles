@@ -7,7 +7,6 @@ require(ggplot2)
 library(purrr)
 library(dplyr)
 library(gplots)
-library(FSA)
 
 source("code/helper_functions.R")
 
@@ -16,7 +15,7 @@ set.seed(256)
 
 # Read in and manipulate the WAE dataset from Ranney et al. 2010 and 2011; data
 # filtering protocols have already been applied
-wae <- read.csv("data/wae_clean.csv", header = T)
+wae <- read.table("data/wae_clean.txt", header = T)
 
 # Assigns fish to a length category (Gabelhouse 1984)
 wae <- 
@@ -28,9 +27,10 @@ wae <-
                                            ifelse(length >= 760, ">T", "SS"))))))
 
 # Assign fish to 10mm length class at midpoint
+# round_down() fx is in helper_functions.R
 wae <- 
   wae %>%
-  mutate(l.c = lencat(length, w = 10) +5)
+  mutate(l.c = round_down(length) +5)
 
 
 # Build nonlinear quantile regression models;
@@ -63,7 +63,7 @@ wae.pred.values %>%
 #-------------------------------------------------------------------------------
 # Read in independent data
 
-waeInd <- read.csv("data/wae_independent.txt", header=T)
+waeInd <- read.table("data/wae_independent.txt", header=T)
 
 # Assigns fish to a length category (Gabelhouse 1984)
 waeInd <- 
@@ -84,15 +84,15 @@ waeSD <-
   filter(State == "SD")
 
 # Random GA populations
-ga2 <- rq(log10(weight)~log10(length), data=waeGA[waeGA$lake == "2",], tau=0.75)
-ga3 <- rq(log10(weight)~log10(length), data=waeGA[waeGA$lake == "3",], tau=0.75)
-ga4 <- rq(log10(weight)~log10(length), data=waeGA[waeGA$lake == "4",], tau=0.75)
+ga2 <- rq(log10(weight)~log10(length), data=waeGA %>% filter(lake == "2"), tau=0.75)
+ga3 <- rq(log10(weight)~log10(length), data=waeGA %>% filter(lake == "3"), tau=0.75)
+ga4 <- rq(log10(weight)~log10(length), data=waeGA %>% filter(lake == "4"), tau=0.75)
 
 
 # Random SD populations
-sd4 <- rq(log10(weight)~log10(length), data=waeSD[waeSD$lake == "4",], tau=0.75)
-sd13 <- rq(log10(weight)~log10(length), data=waeSD[waeSD$lake == "13",], tau=0.75)
-sd25 <- rq(log10(weight)~log10(length), data=waeSD[waeSD$lake == "25",], tau=0.75)
+sd4 <- rq(log10(weight)~log10(length), data=waeSD %>% filter(lake == "4"), tau=0.75)
+sd13 <- rq(log10(weight)~log10(length), data=waeSD %>% filter(lake == "13"), tau=0.75)
+sd25 <- rq(log10(weight)~log10(length), data=waeSD %>% filter(lake == "25"), tau=0.75)
 
 
 #-----------------------------------------------------------------------------
@@ -178,7 +178,7 @@ quarTable <- matrix(c(sSRef, sQRef, qPRef, pMRef, mTRef, gTRef,
 
 # Write the quarTable to the output directory
 quarTable %>%
-  write.csv("output/quarTable.csv", row.names=T)
+  write.csv(paste0("output/", Sys.Date(), "_quarTable.csv"), row.names=T)
 
 #-----------------------------------------------------------------------------
 # Estimate differences between Reference slope and intercept and other models
@@ -188,7 +188,6 @@ quarTable %>%
 # a given dataset
 # EstLinQuantRegCoefDist fx comes from the helper_functions.R file
 
-#Mann-Whitney U test to evaluate for differences between 
 refDist <- EstLinQuantRegCoefDist(wae, 10000, 100, tau=0.75)
 
 ga2Dist <- EstLinQuantRegCoefDist(waeGA %>% filter(lake == "2"), 10000, 100, 0.75)
@@ -243,8 +242,6 @@ slopeVals %>%
              linetype = 2, size = 0.1) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
-
-               
 
 # Create a table of intercept coefficients and bootstrapped confidence intervals
 
@@ -305,35 +302,44 @@ regVals %>%
 regVals <- 
   regVals %>%
   mutate(row_num = row_number(),
-         pop = row.names(regVals),
          is_slope_overlap = ifelse(smean > (regVals %>% filter(pop == "Reference") %>% .$s2.5) &
-                               smean < (regVals %>% filter(pop == "Reference") %>% .$s97.5), TRUE, FALSE))
+                               smean < (regVals %>% filter(pop == "Reference") %>% .$s97.5), TRUE, FALSE)) %>%
+  mutate(pop = pop %>% factor(levels = c("Reference", "GA 1", "GA 2", "GA 3", 
+                                            "SD 1", "SD 2", "SD 3")))
 
 
 #-----------------------------------------------------------  
 # CONVERT BELOW TO A GGPLOT WITH H AND V ERRBARS
 
-#Plot all slope and intercept values on the same plot?  With horizontal and 
-#vertical error bars?
-
 xlab <- bquote(.("Slope" ~ (beta[1])))
 ylab <- bquote(.("Intercept" ~ (beta[0])))
 
-plot(regVals[1,2]~regVals[1,5], ylim=c(-6.5, -4.5), xlim=c(2.9, 3.6), yaxs="i", 
-     xaxs="i", ylab=ylab, xlab=xlab, bty="n", pch=8)
-  points(regVals[2,2]~regVals[2,5], pch=0)
-  points(regVals[3,2]~regVals[3,5], pch=2)  
-  points(regVals[4,2]~regVals[4,5], pch=5)
-  points(regVals[5,2]~regVals[5,5], pch=15)
-  points(regVals[6,2]~regVals[6,5], pch=17)  
-  points(regVals[7,2]~regVals[7,5], pch=18)
-plotCI(regVals[,5], regVals[,2], uiw = 0.5, ui=regVals[,3], li=regVals[,1], err="y", 
-       add=T, pch=NA, gap=0.3)
-plotCI(regVals[,5], regVals[,2], uiw = 0.5, ui=regVals[,6], li=regVals[,4], err="x", 
-       add=T, pch=NA, gap=0.3)
-legend("topright", pch=c(8,0,2,5,15,17,18), legend=c("Reference", "GA 1", "GA 2", 
-                                                     "GA 3", "SD 1", "SD 2", "SD 3"),
-       bty="n")
+regVals %>%
+  ggplot(aes(x = smean, y = intmean, shape = pop)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = int2.5, ymax = int97.5), width = 0.01) +
+  geom_errorbarh(aes(xmin = s2.5, xmax = s97.5), height = 0.07) + 
+  scale_x_continuous(breaks = seq(3.0, 3.5, 0.05)) +
+  scale_y_continuous(breaks = seq(-6.4, -5, 0.2)) +
+  scale_size(guide = "none") +
+  xlab(bquote(.("Slope" ~ (beta[1])))) +
+  ylab(bquote(.("Intercept" ~ (beta[0])))) +
+  scale_shape_manual(name = "Population", 
+                     values = c("Reference" = 13, 
+                                "GA 1" = 0, 
+                                "GA 2" = 1,
+                                "GA 3" = 2, 
+                                "SD 1" = 15,
+                                "SD 2" = 16, 
+                                "SD 3" = 17)) +
+  theme(legend.position = "bottom", 
+        legend.background = element_blank(),
+        legend.key = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "black"))
+
 
 #-----------------------------------------------------------  
 

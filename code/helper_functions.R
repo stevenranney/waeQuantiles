@@ -48,3 +48,10 @@ EstLinQuantRegCoefDist <- function(data, n, numSamples, tau = 0.75){
 std_error <- function(x){
   sd(x)/sqrt(length(x))
 }
+
+# Helper for assinging length classes
+
+round_down <- function(x,to=10)
+{
+  to*(x %/% to)
+}
