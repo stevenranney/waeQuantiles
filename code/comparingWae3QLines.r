@@ -205,12 +205,6 @@ sd13Dist <- EstLinQuantRegCoefDist(waeSD %>% filter(lake == "13"), 10000, 100, 0
 sd25Dist <- EstLinQuantRegCoefDist(waeSD %>% filter(lake == "25"), 10000, 100, 0.75)
 
 # Create a table of slope coefficients and bootstrapped confidence intervals
-slopeVals <- as.data.frame(matrix(data = NA, ncol=3, nrow=7, byrow=T, 
-                           dimnames = list(c("Reference", "GA 1", 
-                                             "GA 2", "GA 3", "SD 1",
-                                             "SD 2", "SD 3"), 
-                                           c("2.5", "mean", "97.5"))))
-
 slopeVals <- 
   data.frame(`2.5` = c(BlomEstimator(refDist[,2], 0.025), 
                        BlomEstimator(ga2Dist[,2], 0.025),
@@ -244,6 +238,8 @@ slopeVals %>%
              linetype = 2, size = 0.1) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+ggsave(paste0("output/", Sys.Date(), "_slopes.jpg"))
 
 # Create a table of intercept coefficients and bootstrapped confidence intervals
 
@@ -280,6 +276,8 @@ intVals %>%
              linetype = 2, size = 0.1) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+ggsave(paste0("output/", Sys.Date(), "_intercepts.jpg"))
 
 
 # Combine the slope and intercept values into one table

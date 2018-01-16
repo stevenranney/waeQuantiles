@@ -1,4 +1,5 @@
-
+library(quantreg)
+library(dplyr)
 
 ## BLOM ESTIMATOR
 
@@ -19,9 +20,6 @@ BlomEstimator <- function(vec, percentile){
 
 
 ## BOOTSTRAP ESTIMATES OF SLOPE AND INTERCEPT
-
-library(quantreg)
-library(dplyr)
 
 EstLinQuantRegCoefDist <- function(data, n, numSamples, tau = 0.75){
   
