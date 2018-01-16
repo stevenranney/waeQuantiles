@@ -239,7 +239,7 @@ slopeVals %>%
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
-ggsave(paste0("output/", Sys.Date(), "_slopes.jpg"))
+ggsave(paste0("output/", Sys.Date(), "_slopes.png"))
 
 # Create a table of intercept coefficients and bootstrapped confidence intervals
 
@@ -277,7 +277,7 @@ intVals %>%
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
-ggsave(paste0("output/", Sys.Date(), "_intercepts.jpg"))
+ggsave(paste0("output/", Sys.Date(), "_intercepts.png"))
 
 
 # Combine the slope and intercept values into one table
