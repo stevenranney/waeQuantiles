@@ -4,8 +4,8 @@
 # S. H. Ranney, 2018
 ################################################################################ 
   
-require(quantreg)
-require(ggplot2)
+library(quantreg)
+library(ggplot2)
 library(purrr)
 library(dplyr)
 library(gplots)

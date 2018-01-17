@@ -2,6 +2,7 @@ library(quantreg)
 library(dplyr)
 
 ## BLOM ESTIMATOR
+## Equivalent to quantile(x, probs, type = 6)
 
 #Calculate the Blom estimator for Q3 values for all length categories
 BlomEstimator <- function(vec, percentile){
