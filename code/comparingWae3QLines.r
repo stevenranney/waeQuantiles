@@ -96,7 +96,6 @@ sd4 <- rq(log10(weight)~log10(length), data=waeSD %>% filter(lake == "4"), tau=0
 sd13 <- rq(log10(weight)~log10(length), data=waeSD %>% filter(lake == "13"), tau=0.75)
 sd25 <- rq(log10(weight)~log10(length), data=waeSD %>% filter(lake == "25"), tau=0.75)
 
-
 #-----------------------------------------------------------------------------
 
 # Calculate the Blom estimator for Q3 values for all length categories
@@ -303,7 +302,9 @@ regVals <-
   regVals %>%
   mutate(row_num = row_number(),
          is_slope_overlap = ifelse(smean > (regVals %>% filter(pop == "Reference") %>% .$s2.5) &
-                               smean < (regVals %>% filter(pop == "Reference") %>% .$s97.5), TRUE, FALSE)) %>%
+                               smean < (regVals %>% filter(pop == "Reference") %>% .$s97.5), TRUE, FALSE), 
+         is_int_overlap = ifelse(intmean > (regVals %>% filter(pop == "Reference") %>% .$int2.5) &
+                                     intmean < (regVals %>% filter(pop == "Reference") %>% .$int97.5), TRUE, FALSE)) %>%
   mutate(pop = pop %>% factor(levels = c("Reference", "GA 1", "GA 2", "GA 3", 
                                             "SD 1", "SD 2", "SD 3")))
 
