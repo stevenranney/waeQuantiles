@@ -44,12 +44,6 @@ wae.mod.5 <- nlrq(weight~alpha*length^beta, data=wae, tau=0.5,
 wae.mod.25 <- nlrq(weight~alpha*length^beta, data=wae, tau=0.25,                         
                    start=list(alpha=0.00001, beta=3))
 
-
-# Build linear quantile regression models
-wae.linMod.75 <- rq(log10(weight)~log10(length), data=wae, tau=0.75)
-wae.linMod.5 <- rq(log10(weight)~log10(length), data=wae, tau=0.5)
-wae.linMod.25 <- rq(log10(weight)~log10(length), data=wae, tau=0.25)
-
 # Create a data.frame of predicted values from the non-linear quantile regression models above
 wae.pred.values <- 
   data.frame("25th" = as.vector(predict(wae.mod.25, list(length=seq(155,745, by=10)), interval="confidence")), 
@@ -61,6 +55,12 @@ wae.pred.values <-
 
 wae.pred.values %>%
   write.csv(paste0("output/", Sys.Date(), "_wae.pred.values.csv"))
+
+# Build linear quantile regression models
+wae.linMod.75 <- rq(log10(weight)~log10(length), data=wae, tau=0.75)
+wae.linMod.5 <- rq(log10(weight)~log10(length), data=wae, tau=0.5)
+wae.linMod.25 <- rq(log10(weight)~log10(length), data=wae, tau=0.25)
+
 
 #-------------------------------------------------------------------------------
 # Read in independent data
@@ -339,7 +339,6 @@ slope_overlap %>%
 
 
 #-----------------------------------------------------------  
-# CONVERT BELOW TO A GGPLOT WITH H AND V ERRBARS
 
 xlab <- bquote(.("Slope" ~ (beta[1])))
 ylab <- bquote(.("Intercept" ~ (beta[0])))
@@ -372,6 +371,8 @@ regVals %>%
         axis.line = element_line(colour = "black"))
 
 ggsave(paste0("output/", Sys.Date(), "_main_fig.png"))
+ggsave(paste0("output/", Sys.Date(), "_main_fig.tiff"))
+
 
 
 #-----------------------------------------------------------  
