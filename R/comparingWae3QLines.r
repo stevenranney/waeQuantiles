@@ -10,7 +10,7 @@ library(purrr)
 library(dplyr)
 library(gplots)
 
-source("code/helper_functions.R")
+source("R/helper_functions.R")
 
 # For repeatability
 set.seed(256)
