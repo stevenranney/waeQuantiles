@@ -9,8 +9,6 @@ Users can clone the repo and run the analyses contained in the paper and evalute
 
 In addition to the code and data presented here, additional supplemental material can be found [here](https://stevenranney.shinyapps.io/slopeDistDemo/). The Shiny app at this link allows for exploration of the distribution of boostrapped replicates of slope from quantile regressions of walleye.
 
----
-
 # News
 
 * 2017-17-01 Initial submission to the North American Journal of Fisheries Management.
