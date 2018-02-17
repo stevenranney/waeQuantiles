@@ -11,4 +11,4 @@ In addition to the code and data presented here, additional supplemental materia
 
 # News
 
-* 2017-17-01 Initial submission to the North American Journal of Fisheries Management.
+* 2017-01-17 Initial submission to the North American Journal of Fisheries Management.
