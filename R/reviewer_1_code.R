@@ -8,6 +8,7 @@ library(scales)
 walleye.ref <-
   read.table("data/wae_clean.txt",
              header=T)
+
 walleye.state <-
   read.table("data/wae_independent.txt",
              header=T)
@@ -98,58 +99,73 @@ summary(w.ref.75,se="boot",bsmethod="xy",R=1000,mofn=5000)
 
 ###Combined 6 states and reference data
 ###Make the ref data the base level in this estimate of 0.75 quantile.
-walleye.comb$State <- relevel(walleye.comb$State,ref="ref")
-w.comb.75 <- rq(log10(weight)~log10(length) + State +
-                  log10(length):State,data=walleye.comb,contrasts=list(State="contr.treatment")
-                ,tau=0.75)
+walleye.comb <-
+  walleye.comb %>%
+  mutate(State = State %>% relevel(ref = "ref"))
 
-w.comb.75.estimates<-summary(w.comb.75,se="boot",bsmethod="xy",R=1000,mofn=5000)
+w.comb.75 <- 
+  walleye.comb %>% 
+  rq(log10(weight)~log10(length) + State + log10(length):State, data = ., 
+     contrasts = list(State="contr.treatment"), tau = 0.75)
+
+w.comb.75.estimates <- summary(w.comb.75, se = "boot", bsmethod = "xy", R = 1000, mofn = 5000)
+
 w.comb.75.estimates <- w.comb.75.estimates$coef
 w.comb.75.estimates <- data.frame(w.comb.75.estimates)
 
 ###Calculate 95% confidence intervals using bootstrap estimates of SE.
 resid.df <- nrow(w.comb.75$x) - ncol(w.comb.75$x)
-w.comb.75.estimates$Lwr95CI <- w.comb.75.estimates$Value +
-  w.comb.75.estimates$Std..Error * qt(0.025,resid.df)
-w.comb.75.estimates$Upr95CI <- w.comb.75.estimates$Value +
-  w.comb.75.estimates$Std..Error * qt(0.975,resid.df)
-w.comb.75.est.95CI <- w.comb.75.estimates[,c(5,1,6,3,4)]
+
+w.comb.75.estimates <- 
+  w.comb.75.estimates %>%
+  mutate(Lwr95CI = Value + Std..Error * qt(0.025,resid.df), 
+         Upr95CI = Value + Std..Error * qt(0.975,resid.df), 
+         name = row.names(.)) %>%
+  select(name, Lwr95CI, Value, Upr95CI, t.value, Pr...t..)
 
 ###Now estimating alternative form of same model so that estimates are 
 ###obtained for each population by removing the intercept term from
 ###model.
-w.comb.75.alt <- rq(log10(weight)~State + log10(length):State
-                    -1,data=walleye.comb,contrasts=list(State="contr.treatment"),tau=0.75)
-w.comb.75.alt.estimates <- summary(w.comb.75.alt,se="boot",bsmethod="xy",R=1000,mofn=5000)
+w.comb.75.alt <- 
+  walleye.comb %>% 
+  rq(log10(weight)~State + log10(length):State - 1, data = ., 
+     contrasts = list(State = "contr.treatment"), tau = 0.75)
+
+w.comb.75.alt.estimates <- summary(w.comb.75.alt, se = "boot", bsmethod = "xy", R = 1000, mofn = 5000)
 w.comb.75.alt.estimates <- w.comb.75.alt.estimates$coef
 w.comb.75.alt.estimates <- data.frame(w.comb.75.alt.estimates)
 
 ###Calculate 95% confidence intervals using bootstrap estimates of SE.
 resid.df <- nrow(w.comb.75.alt$x) - ncol(w.comb.75.alt$x)
-w.comb.75.alt.estimates$Lwr95CI <- w.comb.75.alt.estimates$Value +
-  w.comb.75.alt.estimates$Std..Error * qt(0.025,resid.df)
-w.comb.75.alt.estimates$Upr95CI <- w.comb.75.alt.estimates$Value +
-  w.comb.75.alt.estimates$Std..Error * qt(0.975,resid.df)
-w.comb.75.alt.est.95CI <- w.comb.75.alt.estimates[,c(5,1,6)]
+w.comb.75.alt.estimates <- 
+  w.comb.75.alt.estimates %>%
+  mutate(Lwr95CI = Value + Std..Error * qt(0.025, resid.df), 
+         Upr95CI = Value + Std..Error * qt(0.975,resid.df), 
+         names = row.names(.)) %>%
+  select(names, Lwr95CI, Value, Upr95CI)
 
 ###To estimate predictions at length
 ###Create new data set for predictions using midpoint lengths of length
 ###intervals in Ranney 2018
-walleye.comb.new <- walleye.comb[1:35,]
-walleye.comb.new$weight <- "na"
-walleye.comb.new$length[1:7] <- 125
-walleye.comb.new$length[8:14] <- 315
-walleye.comb.new$length[15:21] <- 445
-walleye.comb.new$length[22:28] <- 570
-walleye.comb.new$length[29:35] <- 695
-walleye.comb.new$State[c(1,8,15,22,29)] <- "ref"
-walleye.comb.new$State[c(2,9,16,23,30)] <- "GA2"
-walleye.comb.new$State[c(3,10,17,24,31)] <- "GA3"
-walleye.comb.new$State[c(4,11,18,25,32)] <- "GA4"
-walleye.comb.new$State[c(5,12,19,26,33)] <- "SD4"
-walleye.comb.new$State[c(6,13,20,27,34)] <- "SD13"
-walleye.comb.new$State[c(7,14,21,28,35)] <- "SD25"
-walleye.comb.new <- walleye.comb.new[,-5]
+walleye.comb.new <-
+  data.frame(State = rep(c("ref", "GA2", "GA3", "GA4", "SD4", "SD13", "SD25"), 5), 
+             length = rep(c(125, 315,445,570,695), each = 7), 
+             weight = rep(NA, 35))
+# walleye.comb.new <- walleye.comb[1:35,]
+# walleye.comb.new$weight <- "na"
+# walleye.comb.new$length[1:7] <- 125
+# walleye.comb.new$length[8:14] <- 315
+# walleye.comb.new$length[15:21] <- 445
+# walleye.comb.new$length[22:28] <- 570
+# walleye.comb.new$length[29:35] <- 695
+# walleye.comb.new$State[c(1,8,15,22,29)] <- "ref"
+# walleye.comb.new$State[c(2,9,16,23,30)] <- "GA2"
+# walleye.comb.new$State[c(3,10,17,24,31)] <- "GA3"
+# walleye.comb.new$State[c(4,11,18,25,32)] <- "GA4"
+# walleye.comb.new$State[c(5,12,19,26,33)] <- "SD4"
+# walleye.comb.new$State[c(6,13,20,27,34)] <- "SD13"
+# walleye.comb.new$State[c(7,14,21,28,35)] <- "SD25"
+# walleye.comb.new <- walleye.comb.new[,-5]
 walleye.comb.pred.75 <- predict(w.comb.75,newdata=walleye.comb.new,
                                 type="percentile",se="boot",bsmethod="xy", R
                                 =1000,mofn=5000,interval="confidence",level=0.95)
