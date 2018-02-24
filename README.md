@@ -1,5 +1,5 @@
-# waeQuantiles
-Manuscript and supporting material for paper on developing Ws equations with Quantile regression
+# Quantile Regression Estimates of Body Weight for Walleye
+Manuscript and supporting material for paper on evaluating fish body weight at length with quantile regression
 
 ---
 
