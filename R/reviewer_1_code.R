@@ -1,6 +1,10 @@
 ###S. Ranney walleye weight length data Feb 2018
 ###Code by B. S. Cade, 8 Feb 2018
 
+library(dplyr)
+library(ggplot2)
+library(scales)
+
 walleye.ref <-
   read.table("data/wae_clean.txt",
              header=T)
@@ -8,58 +12,77 @@ walleye.state <-
   read.table("data/wae_independent.txt",
              header=T)
 
-walleye.state6 <- walleye.state[(walleye.state$State=="SD" &
-                                   walleye.state$lake==4)|(walleye.state$State=="SD" &
-                                                             walleye.state$lake==13)|(walleye.state$State=="SD" &
-                                                                                        walleye.state$lake==25)|(walleye.state$State=="GA" &
-                                                                                                                   walleye.state$lake==2)|(walleye.state$State=="GA" &
-                                                                                                                                             walleye.state$lake==3)|(walleye.state$State=="GA" & walleye.state$lake==4),]
-walleye.comb <- cbind(walleye.ref[,2:3],lake=walleye.ref[,1])
+walleye.state6 <- 
+  walleye.state %>% 
+  filter((walleye.state$State=="SD" & walleye.state$lake==4)|
+          (walleye.state$State=="SD" & walleye.state$lake==13)|
+          (walleye.state$State=="SD" & walleye.state$lake==25)|
+          (walleye.state$State=="GA" & walleye.state$lake==2)|
+          (walleye.state$State=="GA" & walleye.state$lake==3)|
+          (walleye.state$State=="GA" & walleye.state$lake==4))
 
-walleye.comb <- cbind(State="ref",walleye.comb)
+walleye.comb <- 
+  walleye.ref %>% 
+  select(length, weight, lake)
 
-walleye.comb <- rbind(walleye.comb,walleye.state6)
+walleye.comb <- 
+  cbind(State="ref",walleye.comb)
 
-walleye.comb$State <- as.character(walleye.comb$State)
+walleye.comb <- 
+  walleye.comb %>% 
+  bind_rows(walleye.state6)
 
-walleye.comb$State[walleye.comb$State=="GA" & walleye.comb$lake==2] <-"GA2"
+walleye.comb <-
+  walleye.comb %>%
+  mutate(State = State %>% as.character())
 
-walleye.comb$State[walleye.comb$State=="GA" & walleye.comb$lake==3]<-"GA3"
+walleye.comb <-
+  walleye.comb %>% 
+  mutate(State = ifelse(State == "ref", "ref", 
+                        ifelse(State == "GA" & lake == 2, "GA2", 
+                               ifelse(State == "GA" & lake == 3, "GA3", 
+                                      ifelse(State == "GA" & lake == 4, "GA4", 
+                                             ifelse(State == "SD" & lake == 4, "SD4", 
+                                                    ifelse(State == "SD" & lake == 13, "SD13", "SD25")))))), 
+         State = State %>% as.factor())
 
-walleye.comb$State[walleye.comb$State=="GA" & walleye.comb$lake==4] <-"GA4"
+walleye.comb %>%
+  ggplot(aes(x = log10(length), y = log10(weight))) +
+  geom_point(alpha = 0.25) + 
+  facet_wrap(~State)
 
-walleye.comb$State[walleye.comb$State=="SD" & walleye.comb$lake==4] <-"SD4"
-
-walleye.comb$State[walleye.comb$State=="SD" & walleye.comb$lake==13]<-"SD13"
-
-walleye.comb$State[walleye.comb$State=="SD" & walleye.comb$lake==25] <-"SD25"
-
-walleye.comb$State <- as.factor(walleye.comb$State)
-
-plot(weight~length,data=walleye.ref)
-
-library(ggplot2)
-
-walleye.ref %>%
-  ggplot(aes(x = length, y = weight)) +
-  geom_point()
+################################################################################
+# Creating quantile regressions
 
 library(quantreg)
 
-w.ref.75 <- rq(log10(weight)~log10(length),data=walleye.ref,tau=0.75)
-w.ref.50 <- rq(log10(weight)~log10(length),data=walleye.ref,tau=0.50)
-w.ref.25 <- rq(log10(weight)~log10(length),data=walleye.ref,tau=0.25)
+#Quantile regressions from the reference data
+w.ref.75 <- rq(log10(weight)~log10(length), data = walleye.ref, tau = 0.75)
+w.ref.50 <- rq(log10(weight)~log10(length), data = walleye.ref, tau = 0.50)
+w.ref.25 <- rq(log10(weight)~log10(length), data = walleye.ref, tau = 0.25)
 
 ###five quantiles at once with their predictions by 10mm increments
 w.ref.10to90 <-
-  rq(log10(weight)~log10(length),data=walleye.ref,tau=c(0.10,0.25,0.50,0.75,0.90))
+  rq(log10(weight)~log10(length), data = walleye.ref, tau = c(0.10, 0.25, 0.50, 0.75, 0.90))
 
-by10mm <- seq(155,745,by=10)
-by10mm <- data.frame(length=by10mm)
+by10mm <- seq(155, 745, by = 10)
+by10mm <- data.frame(length = by10mm)
 
-predict.by.10mm <- predict(w.ref.10to90,newdata=by10mm,confidence=none)
-predict.by.10mm <- 10^(predict.by.10mm)
-predict.by.10mm <- cbind(by10mm,predict.by.10mm)
+predict.by.10mm <- predict(w.ref.10to90, newdata = by10mm, confidence = none)
+predict.by.10mm <- 10^(predict.by.10mm) %>% round(1) %>% comma()
+predict.by.10mm <- 
+  cbind(by10mm, predict.by.10mm) %>%
+  rename(`Total length (mm)` = length, 
+         `0.10` = "tau= 0.10", 
+         `0.25` = "tau= 0.25", 
+         `0.50` = "tau= 0.50", 
+         `0.75` = "tau= 0.75", 
+         `0.90` = "tau= 0.90") 
+
+predict.by.10mm %>%
+  write.csv(paste0("output/", Sys.Date(), "_predicted_values.csv"), 
+            row.names = FALSE)
+         
 
 ###Three different approaches for obtaining standard errors of esitmates
 ###se="nid" is default approach for large sample sizes and based on the 
@@ -93,7 +116,8 @@ w.comb.75.estimates$Upr95CI <- w.comb.75.estimates$Value +
 w.comb.75.est.95CI <- w.comb.75.estimates[,c(5,1,6,3,4)]
 
 ###Now estimating alternative form of same model so that estimates are 
-###obtainedfor each population by removing the intercept term from ###model.
+###obtained for each population by removing the intercept term from
+###model.
 w.comb.75.alt <- rq(log10(weight)~State + log10(length):State
                     -1,data=walleye.comb,contrasts=list(State="contr.treatment"),tau=0.75)
 w.comb.75.alt.estimates <- summary(w.comb.75.alt,se="boot",bsmethod="xy",R=1000,mofn=5000)
