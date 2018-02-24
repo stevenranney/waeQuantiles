@@ -189,17 +189,3 @@ walleye.comb.cat.25 <- rq(log10(weight)~lengthCat:State -1,
                                                                     State="contr.treatment"))
 10^(walleye.comb.cat.25$coef)
 
-# ###Nonlinear QR estimates. Do not use these as they don't correspond to 
-# ###log10 transformed estimates, are unstable, lack flexibility for 
-# ###including additional parameters, and have poorly developed infernce 
-# ###procedures compared to the linear QR model.
-# w.ref.nlrq75 <-
-#   nlrq(weight~b0*length^b1,data=walleye.ref,tau=0.75,start=list(b0=0.0001,b1=3)
-#   )
-# w.ref.nlrq50 <-
-#   nlrq(weight~b0*length^b1,data=walleye.ref,tau=0.50,start=list(b0=0.0001,b1=3)
-#   )
-# w.ref.nlrq25 <-
-#   nlrq(weight~b0*length^b1,data=walleye.ref,tau=0.25,start=list(b0=0.0001,b1=3)
-#   )
-# predict(w.ref.nlrq75,newdata=walleye.comb.new)
