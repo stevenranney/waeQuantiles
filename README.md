@@ -1,8 +1,3 @@
-# waeQuantiles
-Manuscript and supporting material for paper on developing quantile regression estimations of body weight
-
----
-
 This repository contains the code and data that are used in the manuscript titled "Quantile regression estimates of body weight for walleye."
 
 Users can clone the repo and run the analyses contained in the paper and evalute the output for themselves.
