@@ -1,5 +1,5 @@
 # waeQuantiles
-Manuscript and supporting material for paper on developing Ws equations with Quantile regression
+Manuscript and supporting material for paper on developing quantile regression estimations of body weight
 
 ---
 
