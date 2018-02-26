@@ -1,9 +1,9 @@
-################################################################################
+#-----------------------------------------------------------------------------
 # Code to accompany the manuscript 
 # Quantile Regression Estimates of Body Weight for Walleye
 # S. H. Ranney, 2018
-################################################################################ 
-  
+#-----------------------------------------------------------------------------
+
 library(quantreg)
 library(ggplot2)
 library(purrr)
@@ -53,8 +53,8 @@ wae %>%
   geom_point(alpha = 0.25) + 
   facet_wrap(~State)
 
-################################################################################
-# Table of quantiles
+#-----------------------------------------------------------------------------
+# Table of quantiles and predictions of weight-at-length
 
 # Five quantiles at once with their predictions by 10mm increments
 wae_ref_10to90 <-
@@ -67,10 +67,12 @@ by10mm <-
 predict_by_10mm <- 
   predict(wae_ref_10to90, newdata = by10mm, confidence = none)
 
+# Create, as much as possible, the prediction table in R so not as much 
+# Excel or Word formatting needs to be done.
 predict_by_10mm <- 
-  10^(predict_by_10mm) %>%
-  round(1) %>%
-  comma() %>%
+  10^(predict_by_10mm) %>% #Exponentiate all values
+  round(1) %>% #Round to 1 decimal place
+  comma() %>% #Add comma
   cbind(by10mm, .) %>%
   rename(`Total length (mm)` = length, 
          `0.10` = "tau= 0.10", 
@@ -84,11 +86,11 @@ predict_by_10mm %>%
             row.names = FALSE)
 
 
-################################################################################
-# Standard errors of slope/intercept estimates:
-# Approach for obtaining standard errors of esitmates
+#-----------------------------------------------------------------------------
+# Approach for obtaining estimates of the differences among populations
 # se="xy",R=1000, mofn=5000 is bootstrap of xy-pairs 5000 of n samples 
 # made 1000 times.
+
 # Make the ref data the base level in this estimate of 0.75 quantile.
 wae <-
   wae %>%
@@ -99,10 +101,10 @@ wae_75 <-
   rq(log10(weight)~log10(length) + State + log10(length):State, data = ., 
      contrasts = list(State="contr.treatment"), tau = 0.75)
 
-wae_75_estimates <- summary(wae_75, se = "boot", bsmethod = "xy", R = 1000, mofn = 5000)
+wae_75_diff <- summary(wae_75, se = "boot", bsmethod = "xy", R = 1000, mofn = 5000)
 
-wae_75_estimates <- 
-  data.frame(wae_75_estimates$coef) %>%
+wae_75_diff <- 
+  data.frame(wae_75_diff$coef) %>%
   mutate(name = row.names(.)) %>%
   select(name, Value, Std..Error, t.value, Pr...t..) %>%
   rename(Estimate = Value, 
@@ -110,129 +112,56 @@ wae_75_estimates <-
          `t value` = t.value, 
          `p value` = `Pr...t..`)
 
+# Calculate 95% confidence intervals around the estimate of the differences in 
+# slope/int among populationsusing bootstrap estimates of SE.
+resid_df <- nrow(wae_75$x) - ncol(wae_75$x)
+
+wae_75_diff <- 
+  wae_75_diff %>%
+  mutate(Lwr95CI = Estimate + SE * qt(0.025,resid_df), 
+         Upr95CI = Estimate + SE * qt(0.975,resid_df)) %>%
+  select(name, Lwr95CI, Estimate, Upr95CI, `t value`, `p value`)
+
+wae_75_diff %>%
+  write.csv(paste0("output/", Sys.Date(), "_differences_in_slope_int.csv"), 
+            row.names = FALSE)
+
+# Retrieve slope and intercept for each population
+# Same model as above but removing the intercept term so that I can find slope/int
+# estimates for each population, including ref
+
+wae_75_slope_int <- 
+  wae %>% 
+  rq(log10(weight)~State + log10(length):State - 1, data = ., 
+     contrasts = list(State = "contr.treatment"), tau = 0.75)
+
+wae_75_slope_int_est <- summary(wae_75_slope_int, se = "boot", bsmethod = "xy", R = 1000, mofn = 5000)
+
+wae_75_slope_int_est <- 
+  data.frame(wae_75_slope_int_est$coefficients) %>%
+  mutate(name = row.names(.)) %>%
+  select(name, Value, Std..Error, t.value, Pr...t..) %>%
+  rename(`Point estimate` = Value, 
+         SE = `Std..Error`,
+         `t value` = t.value, 
+         `p value` = `Pr...t..`)
+
+
+###Calculate 95% confidence intervals using bootstrap estimates of SE.
+resid_df <- nrow(wae_75_slope_int$x) - ncol(wae_75_slope_int$x)
+
+wae_75_slope_int_est <- 
+  wae_75_slope_int_est %>%
+  mutate(Lwr95CI = `Point estimate` + SE * qt(0.025, resid_df), 
+         Upr95CI = `Point estimate` + SE * qt(0.975, resid_df)) %>%
+  select(name, Lwr95CI, `Point estimate`, Upr95CI)
+
+wae_75_slope_int_est %>%
+  write.csv(paste0("output/", Sys.Date(), "_slope_int_estimates.csv"), 
+            row.names = FALSE)
 
 
 
-
-
-#-------------------------------------------------------------------------------
-# Read in independent data
-
-waeInd <- read.table("data/wae_independent.txt", header=T)
-
-# Assigns fish to a length category (Gabelhouse 1984)
-waeInd <- 
-  waeInd %>%
-  mutate(psd = ifelse((length>=250)&(length<380), "S-Q",
-                      ifelse((length>=380)&(length<510), "Q-P",
-                             ifelse((length>=510)&(length<630), "P-M",
-                                    ifelse((length>=630)&(length<760), "M-T",
-                                           ifelse(length>=760, ">T", "SS"))))))
-
-# Define GA and SD populations
-waeGA <- 
-  waeInd %>% 
-  filter(State == "GA")
-
-waeSD <- 
-  waeInd %>%
-  filter(State == "SD")
-
-# Random GA populations
-ga2 <- rq(log10(weight)~log10(length), data=waeGA %>% filter(lake == "2"), tau=0.75)
-ga3 <- rq(log10(weight)~log10(length), data=waeGA %>% filter(lake == "3"), tau=0.75)
-ga4 <- rq(log10(weight)~log10(length), data=waeGA %>% filter(lake == "4"), tau=0.75)
-
-
-# Random SD populations
-sd4 <- rq(log10(weight)~log10(length), data=waeSD %>% filter(lake == "4"), tau=0.75)
-sd13 <- rq(log10(weight)~log10(length), data=waeSD %>% filter(lake == "13"), tau=0.75)
-sd25 <- rq(log10(weight)~log10(length), data=waeSD %>% filter(lake == "25"), tau=0.75)
-
-#-----------------------------------------------------------------------------
-
-# Calculate the Blom estimator for Q3 values for all length categories
-# BlomEstimator fx comes from helper_functions.R
-
-# Reference population
-sSRef <- BlomEstimator(wae$weight[wae$psd=="SS"], c(.25, .5,.75))
-sQRef <- BlomEstimator(wae$weight[wae$psd=="S-Q"], c(.25, .5,.75))
-qPRef <- BlomEstimator(wae$weight[wae$psd=="Q-P"], c(.25, .5,.75))
-pMRef <- BlomEstimator(wae$weight[wae$psd=="P-M"], c(.25, .5,.75))
-mTRef <- BlomEstimator(wae$weight[wae$psd=="M-T"], c(.25, .5,.75))
-gTRef <- c(NA, NA, NA)
-
-# GA 1
-sSGa2 <- BlomEstimator(waeGA$weight[waeGA$psd=="SS" & waeGA$lake == "2"], c(.25, .5, .75))
-sQGa2 <- BlomEstimator(waeGA$weight[waeGA$psd=="S-Q" & waeGA$lake == "2"], c(.25, .5, .75))
-qPGa2 <- BlomEstimator(waeGA$weight[waeGA$psd=="Q-P" & waeGA$lake == "2"], c(.25, .5, .75))
-pMGa2 <- BlomEstimator(waeGA$weight[waeGA$psd=="P-M" & waeGA$lake == "2"], c(.25, .5, .75))
-mTGa2 <- BlomEstimator(waeGA$weight[waeGA$psd=="M-T" & waeGA$lake == "2"], c(.25, .5, .75))
-gTGa2 <- c(NA, NA, NA)
-
-# GA 2
-sSGa3 <- BlomEstimator(waeGA$weight[waeGA$psd=="SS" & waeGA$lake == "3"], c(.25, .5, .75))
-sQGa3 <- BlomEstimator(waeGA$weight[waeGA$psd=="S-Q" & waeGA$lake == "3"], c(.25, .5, .75))
-qPGa3 <- BlomEstimator(waeGA$weight[waeGA$psd=="Q-P" & waeGA$lake == "3"], c(.25, .5, .75))
-pMGa3 <- BlomEstimator(waeGA$weight[waeGA$psd=="P-M" & waeGA$lake == "3"], c(.25, .5, .75))
-mTGa3 <- BlomEstimator(waeGA$weight[waeGA$psd=="M-T" & waeGA$lake == "3"], c(.25, .5, .75))
-gTGa3 <- c(NA, NA, NA)
-
-# GA 3
-sSGa4 <- BlomEstimator(waeGA$weight[waeGA$psd=="SS" & waeGA$lake == "4"], c(.25, .5, .75))
-sQGa4 <- BlomEstimator(waeGA$weight[waeGA$psd=="S-Q" & waeGA$lake == "4"], c(.25, .5, .75))
-qPGa4 <- BlomEstimator(waeGA$weight[waeGA$psd=="Q-P" & waeGA$lake == "4"], c(.25, .5, .75))
-pMGa4 <- BlomEstimator(waeGA$weight[waeGA$psd=="P-M" & waeGA$lake == "4"], c(.25, .5, .75))
-mTGa4 <- BlomEstimator(waeGA$weight[waeGA$psd=="M-T" & waeGA$lake == "4"], c(.25, .5, .75))
-gTGa4 <- c(NA, NA, NA)
-
-# SD 1
-sSSd4 <- BlomEstimator(waeSD$weight[waeSD$psd=="SS" & waeSD$lake == "4"], c(.25, .5, .75))
-sQSd4 <- BlomEstimator(waeSD$weight[waeSD$psd=="S-Q" & waeSD$lake == "4"], c(.25, .5, .75))
-qPSd4 <- BlomEstimator(waeSD$weight[waeSD$psd=="Q-P" & waeSD$lake == "4"], c(.25, .5, .75))
-pMSd4 <- BlomEstimator(waeSD$weight[waeSD$psd=="P-M" & waeSD$lake == "4"], c(.25, .5, .75))
-mTSd4 <- BlomEstimator(waeSD$weight[waeSD$psd=="M-T" & waeSD$lake == "4"], c(.25, .5, .75))
-gTSd4 <- c(NA, NA, NA)
-
-# SD 2
-sSSd13 <- BlomEstimator(waeSD$weight[waeSD$psd=="SS" & waeSD$lake == "13"], c(.25, .5, .75))
-sQSd13 <- BlomEstimator(waeSD$weight[waeSD$psd=="S-Q" & waeSD$lake == "13"], c(.25, .5, .75))
-qPSd13 <- BlomEstimator(waeSD$weight[waeSD$psd=="Q-P" & waeSD$lake == "13"], c(.25, .5, .75))
-pMSd13 <- BlomEstimator(waeSD$weight[waeSD$psd=="P-M" & waeSD$lake == "13"], c(.25, .5, .75))
-mTSd13 <- BlomEstimator(waeSD$weight[waeSD$psd=="M-T" & waeSD$lake == "13"], c(.25, .5, .75))
-gTSd13 <- c(NA, NA, NA)
-
-# SD 3
-sSSd25 <- BlomEstimator(waeSD$weight[waeSD$psd=="SS" & waeSD$lake == "25"], c(.25, .5, .75))
-sQSd25 <- BlomEstimator(waeSD$weight[waeSD$psd=="S-Q" & waeSD$lake == "25"], c(.25, .5, .75))
-qPSd25 <- BlomEstimator(waeSD$weight[waeSD$psd=="Q-P" & waeSD$lake == "25"], c(.25, .5, .75))
-pMSd25 <- BlomEstimator(waeSD$weight[waeSD$psd=="P-M" & waeSD$lake == "25"], c(.25, .5, .75))
-mTSd25 <- BlomEstimator(waeSD$weight[waeSD$psd=="M-T" & waeSD$lake == "25"], c(.25, .5, .75))
-gTSd25 <- c(NA, NA, NA)
-
-#Create a table of all Blom estimators, .25, .5, and .75 from the Reference 
-#populations and the three GA and SD pops
-quarTable <- matrix(c(sSRef, sQRef, qPRef, pMRef, mTRef, gTRef, 
-                      sSGa2, sQGa2, qPGa2, pMGa2, mTGa2, gTGa2, 
-                      sSGa3, sQGa3, qPGa3, pMGa3, mTGa3, gTGa3, 
-                      sSGa4, sQGa4, qPGa4, pMGa4, mTGa4, gTGa4, 
-                      sSSd4, sQSd4, qPSd4, pMSd4, mTSd4, gTSd4, 
-                      sSSd13, sQSd13, qPSd13, pMSd13, mTSd13, gTSd13, 
-                      sSSd25, sQSd25, qPSd25, pMSd25, mTSd25, gTSd25), 
-                      nrow=7, ncol=18, dimnames=list(c("Reference", 
-                                                       "GA 1", "GA 2", "GA 3", 
-                                                       "SD 1", "SD 2", "SD 3"), 
-                                                     c(".25",".5", ".75",
-                                                       ".25",".5", ".75",
-                                                       ".25",".5", ".75",
-                                                       ".25",".5", ".75",
-                                                       ".25",".5", ".75",
-                                                       ".25",".5", ".75")),
-                      byrow=T)
-
-# Write the quarTable to the output directory
-quarTable %>%
-  write.csv(paste0("output/", Sys.Date(), "_quarTable.csv"), row.names=T)
 
 #-----------------------------------------------------------------------------
 # Estimate differences between Reference slope and intercept and other models
