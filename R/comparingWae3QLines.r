@@ -218,17 +218,129 @@ predicted_output %>%
   saveRDS(paste0(Sys.Date(), "_predicted_weight_at_length.rds"))
 
 
-# Figure of predicted weights at specific lengths at all quantiles
+# SD LAKES
 predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
-  filter(state != "ref") %>%
-  ggplot(aes(x = tau, y = weight, colour = state)) +
-#  geom_point() +
-  geom_line() +
+  filter(state != "ref", 
+         state %in% c("SD4", "SD13", "SD25")) %>%
+  ggplot(aes(x = tau, y = weight, fill = state)) +
+  #  geom_point() +
+  geom_line(aes(linetype = state)) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
-  facet_wrap(~length, scales = "free_y")
+  facet_wrap(~length, scales = "free_y") +
+  labs(x= "Quantile", y = "Weight (g)") +
+  scale_fill_grey(guide = "none") +
+  scale_linetype_discrete(name = "State") +
+  scale_alpha(guide = "none") +
+  scale_y_continuous(labels = comma) +
+  scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
+  theme_bw() +
+  theme(legend.position = c(.9, .1), 
+        legend.justification = c(1, 0), 
+        #legend.position = "bottom", 
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        strip.background = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+ggsave(paste0("output/", Sys.Date(), "_sd_plots.png"))
+ggsave(paste0("output/", Sys.Date(), "_sd_plots.tiff"))
+
+#Color, .tiff
+predicted_output %>%
+  rename(weight = fit) %>%
+  mutate(length = paste0("TL = ", length)) %>%
+  filter(state != "ref", 
+         state %in% c("SD4", "SD13", "SD25")) %>%
+  ggplot(aes(x = tau, y = weight, fill = state)) +
+  #  geom_point() +
+  geom_line(aes(linetype = state)) +
+  geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
+  facet_wrap(~length, scales = "free_y") +
+  labs(x= "Quantile", y = "Weight (g)") +
+  #  scale_fill_grey(guide = "none") +
+  scale_fill_discrete(name = "State") +
+  scale_linetype_discrete(name = "State", guide = "none") +
+  scale_alpha(guide = "none") +
+  scale_y_continuous(labels = comma) +
+  scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
+  theme_bw() +
+  theme(legend.position = c(.9, .1), 
+        legend.justification = c(1, 0), 
+        #legend.position = "bottom", 
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        strip.background = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+ggsave(paste0("output/", Sys.Date(), "_sd_plots_color.png"))
+ggsave(paste0("output/", Sys.Date(), "_sd_plots_color.tiff"))
+
   
+# GA LAKES
+predicted_output %>%
+  rename(weight = fit) %>%
+  mutate(length = paste0("TL = ", length)) %>%
+  filter(state != "ref", 
+         state %in% c("GA2", "GA3", "GA4")) %>%
+  ggplot(aes(x = tau, y = weight, fill = state)) +
+#  geom_point() +
+  geom_line(aes(linetype = state)) +
+  geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
+  facet_wrap(~length, scales = "free_y") +
+  labs(x= "Quantile", y = "Weight (g)") +
+  scale_fill_grey(guide = "none") +
+  scale_linetype_discrete(name = "State") +
+  scale_alpha(guide = "none") +
+  scale_y_continuous(labels = comma) +
+  scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
+  theme_bw() +
+  theme(legend.position = c(.9, .1), 
+        legend.justification = c(1, 0), 
+        #legend.position = "bottom", 
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        strip.background = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+ggsave(paste0("output/", Sys.Date(), "_ga_plots.png"))
+ggsave(paste0("output/", Sys.Date(), "_ga_plots.tiff"))
+
+#Color, .tiff
+predicted_output %>%
+  rename(weight = fit) %>%
+  mutate(length = paste0("TL = ", length)) %>%
+  filter(state != "ref", 
+         state %in% c("GA2", "GA3", "GA4")) %>%
+  ggplot(aes(x = tau, y = weight, fill = state)) +
+  #  geom_point() +
+  geom_line(aes(linetype = state)) +
+  geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
+  facet_wrap(~length, scales = "free_y") +
+  labs(x= "Quantile", y = "Weight (g)") +
+#  scale_fill_grey(guide = "none") +
+  scale_fill_discrete(name = "State") +
+  scale_linetype_discrete(name = "State", guide = "none") +
+  scale_alpha(guide = "none") +
+  scale_y_continuous(labels = comma) +
+  scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
+  theme_bw() +
+  theme(legend.position = c(.9, .1), 
+        legend.justification = c(1, 0), 
+        #legend.position = "bottom", 
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        strip.background = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+  
+
+ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.png"))
+ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.tiff"))
+
+
+
 
 
 
