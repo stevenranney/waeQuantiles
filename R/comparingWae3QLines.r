@@ -161,7 +161,87 @@ wae_75_slope_int_est %>%
             row.names = FALSE)
 
 
+#-----------------------------------------------------------------------------
+# How to get figures of weight at specific lengths for all quartiles for all 
+# populations?
 
+w.comb.75 <- 
+  walleye.comb %>% 
+  rq(log10(weight)~log10(length) + State + log10(length):State, data = ., 
+     contrasts = list(State="contr.treatment"), tau = 0.75)
+
+###To estimate predictions at length
+###Create new data set for predictions using midpoint lengths of length
+###intervals in Ranney 2018
+walleye.comb.new <-
+  data.frame(State = rep(c("ref", "GA2", "GA3", "GA4", "SD4", "SD13", "SD25"), 5), 
+             length = rep(c(125, 315,445,570,695), each = 7), 
+             weight = rep(NA, 35))
+
+
+walleye.comb.pred.75 <- predict(w.comb.75,newdata=walleye.comb.new,
+                                type="percentile",se="boot",bsmethod="xy", R
+                                =1000,mofn=5000,interval="confidence",level=0.95)
+
+###Exponentiate to get weights into g.
+walleye.comb.pred.cat.midpoints.75 <- 10^walleye.comb.pred.75
+walleye.comb.pred.cat.midpoints.75 <-
+  data.frame(walleye.comb.pred.cat.midpoints.75)
+walleye.comb.pred.cat.midpoints.75 <-
+  cbind(walleye.comb.new$State,walleye.comb.new$length,walleye.comb.pred.cat.midpoints.75)
+
+
+
+taus <- seq(0.05, 0.95, by = 0.05)
+
+wae_new <-
+  data.frame(State = rep(c("ref", "GA2", "GA3", "GA4", "SD4", "SD13", "SD25"), 5), 
+             length = rep(c(125, 315,445,570,695), each = 7), 
+             weight = rep(NA, 35))
+
+
+predicted_output <- list()
+
+taus <- seq(0.05, 0.95, by = 0.05)
+
+for(i in taus){
+  for(j in 1:length(taus)){
+  
+  #Create model for tau
+  wae_mod <- 
+    walleye.comb %>% 
+    rq(log10(weight)~log10(length) + State + log10(length):State, data = ., 
+       contrasts = list(State="contr.treatment"), tau = i)
+  
+  #predict weights at length for tau 
+  wae_pred <- predict(wae_mod,newdata = wae_new,
+                      type = "percentile", se = "boot", bsmethod = "xy", R = 1000,
+                      mofn = 5000, interval = "confidence", level = 0.95)
+  
+  #exponentiate weights into g
+  wae_pred_midpoints <- 10^wae_pred
+  wae_pred_midpoints <- data.frame(wae_pred_midpoints)
+  wae_pred_midpoints <-
+    cbind(wae_new$State,wae_new$length,wae_pred_midpoints) %>%
+    mutate(tau = i)
+  
+  predicted_output[[j]] <- wae_pred_midpoints
+  
+  }}
+
+
+
+
+
+
+
+
+
+
+
+
+#-----------------------------------------------------------------------------
+# BELOW IS LIKELY SUPERFLUOUS NOW
 
 #-----------------------------------------------------------------------------
 # Estimate differences between Reference slope and intercept and other models

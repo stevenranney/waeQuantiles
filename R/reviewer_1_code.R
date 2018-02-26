@@ -154,6 +154,7 @@ walleye.comb.new <-
              length = rep(c(125, 315,445,570,695), each = 7), 
              weight = rep(NA, 35))
 
+
 walleye.comb.pred.75 <- predict(w.comb.75,newdata=walleye.comb.new,
                                 type="percentile",se="boot",bsmethod="xy", R
                                 =1000,mofn=5000,interval="confidence",level=0.95)
