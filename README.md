@@ -6,4 +6,6 @@ In addition to the code and data presented here, additional supplemental materia
 
 # News
 
+* 2017-02-23 Reviews received. Two reviewers and the AE suggested accept with major revisions. One reviewer was particularly helpful and, given that the repo here was provided in the MS, also suggested some revisions to my analyses.
+
 * 2017-01-17 Initial submission to the North American Journal of Fisheries Management.
