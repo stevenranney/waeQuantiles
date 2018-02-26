@@ -64,21 +64,11 @@ wae_ref_10to90 <-
 by10mm <- 
   data.frame(length = seq(155, 745, by = 10))
 
-predict_by_10mm <- predict(wae_ref_10to90, newdata = by10mm, confidence = none)
-predict.by.10mm <- 10^(predict.by.10mm) %>% round(1) %>% comma()
-predict.by.10mm <- 
-  cbind(by10mm, predict.by.10mm) %>%
-  rename(`Total length (mm)` = length, 
-         `0.10` = "tau= 0.10", 
-         `0.25` = "tau= 0.25", 
-         `0.50` = "tau= 0.50", 
-         `0.75` = "tau= 0.75", 
-         `0.90` = "tau= 0.90") 
-
 predict_by_10mm <- 
   predict(wae_ref_10to90, newdata = by10mm, confidence = none)
 
-10^(predict_by_10mm) %>%
+predict_by_10mm <- 
+  10^(predict_by_10mm) %>%
   round(1) %>%
   comma() %>%
   cbind(by10mm, .) %>%
@@ -89,42 +79,9 @@ predict_by_10mm <-
          `0.75` = "tau= 0.75", 
          `0.90` = "tau= 0.90")
 
-
-
-
-predict.by.10mm %>%
+predict_by_10mm %>%
   write.csv(paste0("output/", Sys.Date(), "_predicted_values.csv"), 
             row.names = FALSE)
-
-
-# Build nonlinear quantile regression models;
-# USED ONLY FOR CALCULATING A TABLE OF PREDICTED QUANTILE VALUES
-wae.mod.75 <- nlrq(weight~alpha*length^beta, data=wae, tau=0.75,                         
-                   start=list(alpha=0.00001, beta=3))
-wae.mod.5 <- nlrq(weight~alpha*length^beta, data=wae, tau=0.5,                           
-                  start=list(alpha=0.00001, beta=3))
-wae.mod.25 <- nlrq(weight~alpha*length^beta, data=wae, tau=0.25,                         
-                   start=list(alpha=0.00001, beta=3))
-
-# Create a data.frame of predicted values from the non-linear quantile regression models above
-wae.pred.values <- 
-  data.frame("25th" = as.vector(predict(wae.mod.25, list(length=seq(155,745, by=10)), interval="confidence")), 
-             "50th" = as.vector(predict(wae.mod.5, list(length=seq(155,745, by=10)), interval="confidence")),
-             "75th" = as.vector(predict(wae.mod.75, list(length=seq(155,745, by=10)), interval="confidence"))) %>%
-  rename("25th" = `X25th`, 
-         "50th" = `X50th`, 
-         "75th" = `X75th`)
-
-wae.pred.values %>%
-  write.csv(paste0("output/", Sys.Date(), "_wae.pred.values.csv"))
-
-
-
-
-
-
-
-
 
 
 # Build linear quantile regression models
