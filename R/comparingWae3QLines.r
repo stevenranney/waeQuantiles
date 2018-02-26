@@ -9,6 +9,7 @@ library(ggplot2)
 library(purrr)
 library(dplyr)
 library(gplots)
+library(scales)
 
 source("R/helper_functions.R")
 
@@ -19,7 +20,7 @@ set.seed(256)
 # and combine
 wae <- read.table("data/wae_clean.txt", header = T)
 
-wae <- 
+wae_ref <- 
   wae %>% 
   mutate(State = "ref", 
          State = State %>% as.factor) %>%
@@ -35,7 +36,7 @@ waeInd <-
            (State=="GA" & lake==4))
 
 wae <- 
-  wae %>%
+  wae_ref %>%
   bind_rows(waeInd) %>%
   mutate(State = ifelse(State == "ref", "ref", 
                         ifelse(State == "GA" & lake == 2, "GA2", 
@@ -52,6 +53,48 @@ wae %>%
   geom_point(alpha = 0.25) + 
   facet_wrap(~State)
 
+################################################################################
+# Table of quantiles
+
+# Five quantiles at once with their predictions by 10mm increments
+wae_ref_10to90 <-
+  wae_ref %>%
+  rq(log10(weight)~log10(length), data = ., tau = c(0.10, 0.25, 0.50, 0.75, 0.90))
+
+by10mm <- 
+  data.frame(length = seq(155, 745, by = 10))
+
+predict_by_10mm <- predict(wae_ref_10to90, newdata = by10mm, confidence = none)
+predict.by.10mm <- 10^(predict.by.10mm) %>% round(1) %>% comma()
+predict.by.10mm <- 
+  cbind(by10mm, predict.by.10mm) %>%
+  rename(`Total length (mm)` = length, 
+         `0.10` = "tau= 0.10", 
+         `0.25` = "tau= 0.25", 
+         `0.50` = "tau= 0.50", 
+         `0.75` = "tau= 0.75", 
+         `0.90` = "tau= 0.90") 
+
+predict_by_10mm <- 
+  predict(wae_ref_10to90, newdata = by10mm, confidence = none)
+
+10^(predict_by_10mm) %>%
+  round(1) %>%
+  comma() %>%
+  cbind(by10mm, .) %>%
+  rename(`Total length (mm)` = length, 
+         `0.10` = "tau= 0.10", 
+         `0.25` = "tau= 0.25", 
+         `0.50` = "tau= 0.50", 
+         `0.75` = "tau= 0.75", 
+         `0.90` = "tau= 0.90")
+
+
+
+
+predict.by.10mm %>%
+  write.csv(paste0("output/", Sys.Date(), "_predicted_values.csv"), 
+            row.names = FALSE)
 
 
 # Build nonlinear quantile regression models;
@@ -74,6 +117,15 @@ wae.pred.values <-
 
 wae.pred.values %>%
   write.csv(paste0("output/", Sys.Date(), "_wae.pred.values.csv"))
+
+
+
+
+
+
+
+
+
 
 # Build linear quantile regression models
 wae.linMod.75 <- rq(log10(weight)~log10(length), data=wae, tau=0.75)
