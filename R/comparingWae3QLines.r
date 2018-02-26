@@ -162,59 +162,31 @@ wae_75_slope_int_est %>%
 
 
 #-----------------------------------------------------------------------------
-# How to get figures of weight at specific lengths for all quartiles for all 
-# populations?
-
-w.comb.75 <- 
-  walleye.comb %>% 
-  rq(log10(weight)~log10(length) + State + log10(length):State, data = ., 
-     contrasts = list(State="contr.treatment"), tau = 0.75)
-
-###To estimate predictions at length
-###Create new data set for predictions using midpoint lengths of length
-###intervals in Ranney 2018
-walleye.comb.new <-
-  data.frame(State = rep(c("ref", "GA2", "GA3", "GA4", "SD4", "SD13", "SD25"), 5), 
-             length = rep(c(125, 315,445,570,695), each = 7), 
-             weight = rep(NA, 35))
-
-
-walleye.comb.pred.75 <- predict(w.comb.75,newdata=walleye.comb.new,
-                                type="percentile",se="boot",bsmethod="xy", R
-                                =1000,mofn=5000,interval="confidence",level=0.95)
-
-###Exponentiate to get weights into g.
-walleye.comb.pred.cat.midpoints.75 <- 10^walleye.comb.pred.75
-walleye.comb.pred.cat.midpoints.75 <-
-  data.frame(walleye.comb.pred.cat.midpoints.75)
-walleye.comb.pred.cat.midpoints.75 <-
-  cbind(walleye.comb.new$State,walleye.comb.new$length,walleye.comb.pred.cat.midpoints.75)
-
-
-
-taus <- seq(0.05, 0.95, by = 0.05)
+# For every population from every quantile seq(0.05, 0.95, by = 0.05), predict 
+# weight at lenght at the midpoints of the Gabelhouse length categories
 
 wae_new <-
   data.frame(State = rep(c("ref", "GA2", "GA3", "GA4", "SD4", "SD13", "SD25"), 5), 
              length = rep(c(125, 315,445,570,695), each = 7), 
              weight = rep(NA, 35))
 
-
+#Empty list to store values
 predicted_output <- list()
 
 taus <- seq(0.05, 0.95, by = 0.05)
 
-for(i in taus){
-  for(j in 1:length(taus)){
+start <- Sys.time()
+
+for(i in 1:length(taus)){
   
-  #Create model for tau
+  #Create model for each tau
   wae_mod <- 
-    walleye.comb %>% 
+    wae %>% 
     rq(log10(weight)~log10(length) + State + log10(length):State, data = ., 
-       contrasts = list(State="contr.treatment"), tau = i)
+       contrasts = list(State="contr.treatment"), tau = taus[i])
   
-  #predict weights at length for tau 
-  wae_pred <- predict(wae_mod,newdata = wae_new,
+  #predict weights at length in wae_new for each tau 
+  wae_pred <- predict(wae_mod, newdata = wae_new,
                       type = "percentile", se = "boot", bsmethod = "xy", R = 1000,
                       mofn = 5000, interval = "confidence", level = 0.95)
   
@@ -223,14 +195,40 @@ for(i in taus){
   wae_pred_midpoints <- data.frame(wae_pred_midpoints)
   wae_pred_midpoints <-
     cbind(wae_new$State,wae_new$length,wae_pred_midpoints) %>%
-    mutate(tau = i)
+    mutate(tau = taus[i])
   
-  predicted_output[[j]] <- wae_pred_midpoints
+  #Store output in the empty list
+  predicted_output[[i]] <- wae_pred_midpoints
   
-  }}
+  }
+
+end <- Sys.time()
+
+end - start
+
+# Convert list of output into a single dataframe
+predicted_output <- 
+  do.call("rbind", predicted_output ) %>%
+  as.data.frame() %>%
+  rename(state = `wae_new$State`, 
+         length = `wae_new$length`)
+
+# Save to RDS because this takes a while, 8.3 minutes
+predicted_output %>%
+  saveRDS(paste0(Sys.Date(), "_predicted_weight_at_length.rds"))
 
 
-
+# Figure of predicted weights at specific lengths at all quantiles
+predicted_output %>%
+  rename(weight = fit) %>%
+  mutate(length = paste0("TL = ", length)) %>%
+  filter(state != "ref") %>%
+  ggplot(aes(x = tau, y = weight, colour = state)) +
+#  geom_point() +
+  geom_line() +
+  geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
+  facet_wrap(~length, scales = "free_y")
+  
 
 
 
