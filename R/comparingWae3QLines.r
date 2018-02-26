@@ -15,24 +15,43 @@ source("R/helper_functions.R")
 # For repeatability
 set.seed(256)
 
-# Read in and manipulate the WAE dataset from Ranney et al. 2010 and 2011; data
-# filtering protocols have already been applied
+# Data handling. Read in the reference and state "independent" datasets, manipulate, 
+# and combine
 wae <- read.table("data/wae_clean.txt", header = T)
 
-# Assigns fish to a length category (Gabelhouse 1984)
 wae <- 
-  wae %>%
-  mutate(psd = ifelse((length >= 250) & (length < 380), "S-Q",
-                      ifelse((length >= 380) & (length < 510), "Q-P",
-                             ifelse((length >= 510) & (length < 630), "P-M",
-                                    ifelse((length >= 630) & (length < 760), "M-T",
-                                           ifelse(length >= 760, ">T", "SS"))))))
+  wae %>% 
+  mutate(State = "ref", 
+         State = State %>% as.factor) %>%
+  select(State, length, weight, lake)
 
-# Assign fish to 10mm length class at midpoint
-# round_down() fx is in helper_functions.R
+waeInd <- 
+  read.table("data/wae_independent.txt", header=T) %>%
+  filter((State=="SD" & lake==4)|
+           (State=="SD" & lake==13)|
+           (State=="SD" & lake==25)|
+           (State=="GA" & lake==2)|
+           (State=="GA" & lake==3)|
+           (State=="GA" & lake==4))
+
 wae <- 
   wae %>%
-  mutate(l.c = round_down(length) +5)
+  bind_rows(waeInd) %>%
+  mutate(State = ifelse(State == "ref", "ref", 
+                        ifelse(State == "GA" & lake == 2, "GA2", 
+                               ifelse(State == "GA" & lake == 3, "GA3", 
+                                      ifelse(State == "GA" & lake == 4, "GA4", 
+                                             ifelse(State == "SD" & lake == 4, "SD4", 
+                                                    ifelse(State == "SD" & lake == 13, "SD13", "SD25")))))), 
+         State = State %>% as.factor(), 
+         psd = assign_wae_psd(length), 
+         l.c = round_down(length) +5)
+
+wae %>%
+  ggplot(aes(x = log10(length), y = log10(weight))) +
+  geom_point(alpha = 0.25) + 
+  facet_wrap(~State)
+
 
 
 # Build nonlinear quantile regression models;

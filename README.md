@@ -1,6 +1,5 @@
 # Quantile Regression Estimates of Body Weight for Walleye
 Manuscript and supporting material for paper on evaluating fish body weight at length with quantile regression
-
 ---
 
 This repository contains the code and data that are used in the manuscript titled "Quantile regression estimates of body weight for walleye."

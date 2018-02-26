@@ -5,6 +5,7 @@ library(dplyr)
 library(ggplot2)
 library(scales)
 
+# Combining all data into one file, which makes complete sense.
 walleye.ref <-
   read.table("data/wae_clean.txt",
              header=T)
@@ -24,7 +25,8 @@ walleye.state6 <-
 
 walleye.comb <- 
   walleye.ref %>% 
-  select(length, weight, lake)
+  select(length, weight, lake)# %>% 
+#  mutate(State = "ref")
 
 walleye.comb <- 
   cbind(State="ref",walleye.comb)
