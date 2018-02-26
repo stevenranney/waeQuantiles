@@ -84,10 +84,35 @@ predict_by_10mm %>%
             row.names = FALSE)
 
 
-# Build linear quantile regression models
-wae.linMod.75 <- rq(log10(weight)~log10(length), data=wae, tau=0.75)
-wae.linMod.5 <- rq(log10(weight)~log10(length), data=wae, tau=0.5)
-wae.linMod.25 <- rq(log10(weight)~log10(length), data=wae, tau=0.25)
+################################################################################
+# Standard errors of slope/intercept estimates:
+# Approach for obtaining standard errors of esitmates
+# se="xy",R=1000, mofn=5000 is bootstrap of xy-pairs 5000 of n samples 
+# made 1000 times.
+# Make the ref data the base level in this estimate of 0.75 quantile.
+wae <-
+  wae %>%
+  mutate(State = State %>% relevel(ref = "ref"))
+
+wae_75 <- 
+  wae %>% 
+  rq(log10(weight)~log10(length) + State + log10(length):State, data = ., 
+     contrasts = list(State="contr.treatment"), tau = 0.75)
+
+wae_75_estimates <- summary(wae_75, se = "boot", bsmethod = "xy", R = 1000, mofn = 5000)
+
+wae_75_estimates <- 
+  data.frame(wae_75_estimates$coef) %>%
+  mutate(name = row.names(.)) %>%
+  select(name, Value, Std..Error, t.value, Pr...t..) %>%
+  rename(Estimate = Value, 
+         SE = `Std..Error`,
+         `t value` = t.value, 
+         `p value` = `Pr...t..`)
+
+
+
+
 
 
 #-------------------------------------------------------------------------------
