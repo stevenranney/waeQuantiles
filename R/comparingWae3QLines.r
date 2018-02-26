@@ -163,7 +163,7 @@ wae_75_slope_int_est %>%
 
 #-----------------------------------------------------------------------------
 # For every population from every quantile seq(0.05, 0.95, by = 0.05), predict 
-# weight at lenght at the midpoints of the Gabelhouse length categories
+# weight at length at the midpoints of the Gabelhouse length categories
 
 wae_new <-
   data.frame(State = rep(c("ref", "GA2", "GA3", "GA4", "SD4", "SD13", "SD25"), 5), 
@@ -174,8 +174,6 @@ wae_new <-
 predicted_output <- list()
 
 taus <- seq(0.05, 0.95, by = 0.05)
-
-start <- Sys.time()
 
 for(i in 1:length(taus)){
   
@@ -202,10 +200,6 @@ for(i in 1:length(taus)){
   
   }
 
-end <- Sys.time()
-
-end - start
-
 # Convert list of output into a single dataframe
 predicted_output <- 
   do.call("rbind", predicted_output ) %>%
@@ -225,7 +219,6 @@ predicted_output %>%
   filter(state != "ref", 
          state %in% c("SD4", "SD13", "SD25")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
-  #  geom_point() +
   geom_line(aes(linetype = state)) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
@@ -238,7 +231,6 @@ predicted_output %>%
   theme_bw() +
   theme(legend.position = c(.9, .1), 
         legend.justification = c(1, 0), 
-        #legend.position = "bottom", 
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
         strip.background = element_blank(), 
         panel.grid.major = element_blank(),
@@ -254,12 +246,10 @@ predicted_output %>%
   filter(state != "ref", 
          state %in% c("SD4", "SD13", "SD25")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
-  #  geom_point() +
   geom_line(aes(linetype = state)) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
   labs(x= "Quantile", y = "Weight (g)") +
-  #  scale_fill_grey(guide = "none") +
   scale_fill_discrete(name = "State") +
   scale_linetype_discrete(name = "State", guide = "none") +
   scale_alpha(guide = "none") +
@@ -268,12 +258,10 @@ predicted_output %>%
   theme_bw() +
   theme(legend.position = c(.9, .1), 
         legend.justification = c(1, 0), 
-        #legend.position = "bottom", 
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
         strip.background = element_blank(), 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
-
 
 ggsave(paste0("output/", Sys.Date(), "_sd_plots_color.png"))
 ggsave(paste0("output/", Sys.Date(), "_sd_plots_color.tiff"))
@@ -286,7 +274,6 @@ predicted_output %>%
   filter(state != "ref", 
          state %in% c("GA2", "GA3", "GA4")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
-#  geom_point() +
   geom_line(aes(linetype = state)) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
@@ -299,7 +286,6 @@ predicted_output %>%
   theme_bw() +
   theme(legend.position = c(.9, .1), 
         legend.justification = c(1, 0), 
-        #legend.position = "bottom", 
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
         strip.background = element_blank(), 
         panel.grid.major = element_blank(),
@@ -315,12 +301,10 @@ predicted_output %>%
   filter(state != "ref", 
          state %in% c("GA2", "GA3", "GA4")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
-  #  geom_point() +
   geom_line(aes(linetype = state)) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
   labs(x= "Quantile", y = "Weight (g)") +
-#  scale_fill_grey(guide = "none") +
   scale_fill_discrete(name = "State") +
   scale_linetype_discrete(name = "State", guide = "none") +
   scale_alpha(guide = "none") +
@@ -329,7 +313,6 @@ predicted_output %>%
   theme_bw() +
   theme(legend.position = c(.9, .1), 
         legend.justification = c(1, 0), 
-        #legend.position = "bottom", 
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
         strip.background = element_blank(), 
         panel.grid.major = element_blank(),
@@ -339,214 +322,5 @@ predicted_output %>%
 ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.png"))
 ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.tiff"))
 
-
-
-
-
-
-
-
-
-
-
-
-#-----------------------------------------------------------------------------
-# BELOW IS LIKELY SUPERFLUOUS NOW
-
-#-----------------------------------------------------------------------------
-# Estimate differences between Reference slope and intercept and other models
-
-# Bootstrap the sampling distributions of slope and intercept values by 
-# running n regressions with numSamples drawn randomly with replacement from 
-# a given dataset
-# EstLinQuantRegCoefDist fx comes from the helper_functions.R file
-
-refDist <- EstLinQuantRegCoefDist(wae, 10000, 100, tau=0.75)
-
-ga2Dist <- EstLinQuantRegCoefDist(waeGA %>% filter(lake == "2"), 10000, 100, 0.75)
-
-ga3Dist <- EstLinQuantRegCoefDist(waeGA %>% filter(lake == "3"), 10000, 100, 0.75)
-
-ga4Dist <- EstLinQuantRegCoefDist(waeGA %>% filter(lake == "4"), 10000, 100, 0.75)
-
-sd4Dist <- EstLinQuantRegCoefDist(waeSD %>% filter(lake == "4"), 10000, 100, 0.75)
-
-sd13Dist <- EstLinQuantRegCoefDist(waeSD %>% filter(lake == "13"), 10000, 100, 0.75)
-
-sd25Dist <- EstLinQuantRegCoefDist(waeSD %>% filter(lake == "25"), 10000, 100, 0.75)
-
-# Create a table of slope coefficients and bootstrapped confidence intervals
-slopeVals <- 
-  data.frame(`2.5` = c(BlomEstimator(refDist[,2], 0.025), 
-                       BlomEstimator(ga2Dist[,2], 0.025),
-                       BlomEstimator(ga3Dist[,2], 0.025),
-                       BlomEstimator(ga4Dist[,2], 0.025),
-                       BlomEstimator(sd4Dist[,2], 0.025),
-                       BlomEstimator(sd13Dist[,2], 0.025),
-                       BlomEstimator(sd25Dist[,2], 0.025)), 
-             mean = c(mean(refDist[,2]), mean(ga2Dist[,2]), mean(ga3Dist[,2]), 
-                      mean(ga4Dist[,2]), mean(sd4Dist[,2]), mean(sd13Dist[,2]), 
-                      mean(sd25Dist[,2])), 
-             `97.5` = c(BlomEstimator(refDist[,2], 0.975), 
-                        BlomEstimator(ga2Dist[,2], 0.975),
-                        BlomEstimator(ga3Dist[,2], 0.975),
-                        BlomEstimator(ga4Dist[,2], 0.975),
-                        BlomEstimator(sd4Dist[,2], 0.975),
-                        BlomEstimator(sd13Dist[,2], 0.975),
-                        BlomEstimator(sd25Dist[,2], 0.975))) %>%
-  mutate(pop = c("Reference", "GA 1", "GA 2", "GA 3", "SD 1", "SD 2", "SD 3")) %>%
-  rename("2.5" = "X2.5", 
-         "97.5" = "X97.5")
-
-slopeVals %>%
-  ggplot(aes(x = pop, y = mean)) +
-  geom_point() +
-  labs(x = "Population", y = "Slope") +
-  geom_errorbar(aes(x = pop, ymin = `2.5`, ymax = `97.5`)) +
-  geom_hline(yintercept = slopeVals %>% filter(pop == "Reference") %>% .$`2.5`, 
-             linetype = 2, size = 0.1) +
-  geom_hline(yintercept = slopeVals %>% filter(pop == "Reference") %>% .$`97.5`, 
-             linetype = 2, size = 0.1) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))
-
-ggsave(paste0("output/", Sys.Date(), "_slopes.png"))
-
-# Create a table of intercept coefficients and bootstrapped confidence intervals
-
-intVals <- 
-  data.frame(`2.5` = c(BlomEstimator(refDist[,1], 0.025), 
-                       BlomEstimator(ga2Dist[,1], 0.025),
-                       BlomEstimator(ga3Dist[,1], 0.025),
-                       BlomEstimator(ga4Dist[,1], 0.025),
-                       BlomEstimator(sd4Dist[,1], 0.025),
-                       BlomEstimator(sd13Dist[,1], 0.025),
-                       BlomEstimator(sd25Dist[,1], 0.025)), 
-             mean = c(mean(refDist[,1]), mean(ga2Dist[,1]), mean(ga3Dist[,1]), 
-                      mean(ga4Dist[,1]), mean(sd4Dist[,1]), mean(sd13Dist[,1]), 
-                      mean(sd25Dist[,1])), 
-             `97.5` = c(BlomEstimator(refDist[,1], 0.975), 
-                        BlomEstimator(ga2Dist[,1], 0.975),
-                        BlomEstimator(ga3Dist[,1], 0.975),
-                        BlomEstimator(ga4Dist[,1], 0.975),
-                        BlomEstimator(sd4Dist[,1], 0.975),
-                        BlomEstimator(sd13Dist[,1], 0.975),
-                        BlomEstimator(sd25Dist[,1], 0.975))) %>%
-  mutate(pop = c("Reference", "GA 1", "GA 2", "GA 3", "SD 1", "SD 2", "SD 3")) %>%
-  rename("2.5" = "X2.5", 
-         "97.5" = "X97.5")
-
-intVals %>%
-  ggplot(aes(x = pop, y = mean)) +
-  geom_point() +
-  labs(x = "Population", y = "Intercept") +
-  geom_errorbar(aes(x = pop, ymin = `2.5`, ymax = `97.5`)) +
-  geom_hline(yintercept = intVals %>% filter(pop == "Reference") %>% .$`2.5`, 
-             linetype = 2, size = 0.1) +
-  geom_hline(yintercept = intVals %>% filter(pop == "Reference") %>% .$`97.5`, 
-             linetype = 2, size = 0.1) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))
-
-ggsave(paste0("output/", Sys.Date(), "_intercepts.png"))
-
-
-# Combine the slope and intercept values into one table
-regVals <- 
-  bind_cols(intVals %>%
-          rename(`int2.5` = `2.5`, 
-                 intmean = mean, 
-                 `int97.5` = `97.5`) %>%
-            select(int2.5, intmean, int97.5), 
-        slopeVals %>%
-          rename(`s2.5` = `2.5`, 
-                 smean = mean, 
-                 `s97.5` = `97.5`) %>%
-          select(s2.5, smean, s97.5, pop))
-
-#Write tables to file
-regVals %>%
-  write.csv(paste0("output/", Sys.Date(), "_regVals.csv"), row.names = F)
-
-# Do the 95% estimates of slope for each population overlap the slope value for the reference population?
-
-regVals <- 
-  regVals %>%
-  mutate(row_num = row_number(),
-         is_slope_overlap = ifelse(smean > (regVals %>% filter(pop == "Reference") %>% .$s2.5) &
-                               smean < (regVals %>% filter(pop == "Reference") %>% .$s97.5), TRUE, FALSE), 
-         is_int_overlap = ifelse(intmean > (regVals %>% filter(pop == "Reference") %>% .$int2.5) &
-                                     intmean < (regVals %>% filter(pop == "Reference") %>% .$int97.5), TRUE, FALSE)) %>%
-  mutate(pop = pop %>% factor(levels = c("Reference", "GA 1", "GA 2", "GA 3", 
-                                            "SD 1", "SD 2", "SD 3")))
-
-# IF REFERENCE POPULATION SLOPE AND INTERCEPT 95% CI DO NOT OVERLAP WITH POPULATION
-# LEVEL SLOPE AND INTERCEPT, DETERMINE WHETHER THE INTERVAL AROUND THE DIFFERENCE
-# IN SLOPES CONTAINS ZERO; FROM POPE AND KRUSE 2007 AIFFD, page 433 (i.e., rows 
-# that are FALSE in regVals$is_slope_overlap)
-
-
-#Fx to return the interval around the differences in slopes
-
-interval_around_differences <- function(population, reference){
-  
-  upper <- (mean(reference$slope) - mean(population$slope)) + (1.96*sqrt(std_error(reference$slope)^2 + std_error(population$slope)^2))
-  lower <- (mean(reference$slope) - mean(population$slope)) - (1.96*sqrt(std_error(reference$slope)^2 + std_error(population$slope)^2))
-  
-  data.frame(upper = upper, 
-             lower = lower) %>%
-    return()
-}
-
-slope_overlap <- 
-  list(ga2Dist, ga3Dist, ga4Dist, 
-     sd4Dist, sd13Dist, sd25Dist) %>%
-  map_dfr(interval_around_differences, refDist) %>%
-  mutate(pop = c("GA 1", "GA 2", "GA 3", "SD 1", "SD 2", "SD 3")) %>%
-  full_join(regVals)
-
-slope_overlap %>%
-  write.csv(paste0("output/", Sys.Date(), "_slope_overlap.csv"), row.names = F)
-  
-
-
-#-----------------------------------------------------------  
-
-xlab <- bquote(.("Slope" ~ (beta[1])))
-ylab <- bquote(.("Intercept" ~ (beta[0])))
-
-regVals %>%
-  ggplot(aes(x = smean, y = intmean, shape = pop)) +
-  geom_point(size = 3) +
-  geom_errorbar(aes(ymin = int2.5, ymax = int97.5), width = 0.01) +
-  geom_errorbarh(aes(xmin = s2.5, xmax = s97.5), height = 0.07) + 
-  scale_x_continuous(breaks = seq(3.0, 3.5, 0.05)) +
-  scale_y_continuous(breaks = seq(-6.4, -5, 0.2)) +
-  scale_size(guide = "none") +
-  xlab(bquote(.("Slope" ~ (beta[1])))) +
-  ylab(bquote(.("Intercept" ~ (beta[0])))) +
-  scale_shape_manual(name = "Population", 
-                     values = c("Reference" = 13, 
-                                "GA 1" = 0, 
-                                "GA 2" = 1,
-                                "GA 3" = 2, 
-                                "SD 1" = 15,
-                                "SD 2" = 16, 
-                                "SD 3" = 17)) +
-  guides(shape = guide_legend(nrow = 1)) +
-  theme(legend.position = "bottom", 
-        legend.background = element_blank(),
-        legend.key = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank(), 
-        axis.line = element_line(colour = "black"))
-
-ggsave(paste0("output/", Sys.Date(), "_main_fig.png"))
-ggsave(paste0("output/", Sys.Date(), "_main_fig.tiff"))
-
-
-
-#-----------------------------------------------------------  
 
 

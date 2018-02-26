@@ -11,3 +11,5 @@
 
 *.tiff
 output/slope_int_estimates_formatted.csv
+output/diffs_in_slope_int_formatted.csv
+output/predicted_values_formatted.csv
