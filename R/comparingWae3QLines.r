@@ -205,13 +205,14 @@ predicted_output <-
   as.data.frame() %>%
   rename(state = `wae_new$State`, 
          length = `wae_new$length`) %>%
-  mutate(state = state %>% relevel(ref = "ref"), 
-         state = ifelse(state == "GA2", "GA1", 
+  mutate(state = ifelse(state == "GA2", "GA1", 
                         ifelse(state == "GA3", "GA2", 
                                ifelse(state == "GA4", "GA3", 
                                       ifelse(state == "SD4", "SD1", 
                                              ifelse(state == "SD13", "SD2", 
-                                                    ifelse(state == "SD25", "SD3", "Reference")))))))
+                                                    ifelse(state == "SD25", "SD3", "Reference")))))), 
+         state = state %>% as.factor(), 
+         state = state %>% relevel(ref = "Reference"))
 
 # Save to RDS because this takes a while, 8.3 minutes
 predicted_output %>%
@@ -219,13 +220,14 @@ predicted_output %>%
 
 predicted_output <- 
   readRDS(paste0(Sys.Date(), "_predicted_weight_at_length.rds")) %>%
-  mutate(state = state %>% relevel(ref = "ref"), 
-         state = ifelse(state == "GA2", "GA1", 
+  mutate(state = ifelse(state == "GA2", "GA1", 
                         ifelse(state == "GA3", "GA2", 
                                ifelse(state == "GA4", "GA3", 
                                       ifelse(state == "SD4", "SD1", 
                                              ifelse(state == "SD13", "SD2", 
-                                                    ifelse(state == "SD25", "SD3", "Reference")))))))
+                                                    ifelse(state == "SD25", "SD3", "Reference")))))), 
+         state = state %>% as.factor(),
+         state = state %>% relevel(ref = "Reference"))
 
 
 # SD LAKES
@@ -270,7 +272,7 @@ predicted_output %>%
   labs(x= "Quantile", y = "Weight (g)") +
   scale_fill_manual(name = "State", 
                     labels = c("Reference", "SD1", "SD2", "SD3"), 
-                    values = hue_pal()(4)) +
+                    values = alpha(hue_pal()(4), alpha = 0.5)) +
   scale_linetype_manual(name = "State", 
                         labels = c("Reference", "SD1", "SD2", "SD3"), 
                         values = c(1,3,4,6)) +
@@ -329,8 +331,12 @@ predicted_output %>%
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
   labs(x= "Quantile", y = "Weight (g)") +
-  scale_fill_discrete(name = "State") +
-  scale_linetype_discrete(name = "State", guide = "none") +
+  scale_fill_manual(name = "State", 
+                    labels = c("Reference", "GA1", "GA2", "GA3"), 
+                    values = alpha(hue_pal()(4), alpha = 0.5)) +
+  scale_linetype_manual(name = "State", 
+                        labels = c("Reference", "GA1", "GA2", "GA3"), 
+                        values = c(1,3,4,6)) +
   scale_alpha(guide = "none") +
   scale_y_continuous(labels = comma) +
   scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
