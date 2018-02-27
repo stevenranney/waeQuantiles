@@ -231,7 +231,8 @@ predicted_output <-
 
 
 # SD LAKES
-predicted_output %>%
+sd_bw <- 
+  predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
   filter(state %in% c("Reference", "SD1", "SD2", "SD3")) %>%
@@ -250,18 +251,19 @@ predicted_output %>%
   scale_y_continuous(labels = comma) +
   scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
   theme_bw() +
-  theme(legend.position = c(.9, .1), 
+  theme(legend.position = c(.925, .06), 
         legend.justification = c(1, 0), 
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
         strip.background = element_blank(), 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
-ggsave(paste0("output/", Sys.Date(), "_sd_plots.png"))
-ggsave(paste0("output/", Sys.Date(), "_sd_plots.tiff"))
+ggsave(paste0("output/", Sys.Date(), "_sd_plots.png"), plot = sd_bw)
+ggsave(paste0("output/", Sys.Date(), "_sd_plots.tiff"), plot = sd_bw)
 
 #Color, .tiff
-predicted_output %>%
+sd_col <- 
+  predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
   filter(state %in% c("Reference", "SD1", "SD2", "SD3")) %>%
@@ -280,19 +282,20 @@ predicted_output %>%
   scale_y_continuous(labels = comma) +
   scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
   theme_bw() +
-  theme(legend.position = c(.9, .1), 
+  theme(legend.position = c(.925, .06), 
         legend.justification = c(1, 0), 
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
         strip.background = element_blank(), 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
-ggsave(paste0("output/", Sys.Date(), "_sd_plots_color.png"))
-ggsave(paste0("output/", Sys.Date(), "_sd_plots_color.tiff"))
+ggsave(paste0("output/", Sys.Date(), "_sd_plots_color.png"), plot = sd_col)
+ggsave(paste0("output/", Sys.Date(), "_sd_plots_color.tiff"), plot = sd_col)
 
   
 # GA LAKES
-predicted_output %>%
+ga_bw <- 
+  predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
   filter(state %in% c("Reference", "GA1", "GA2", "GA3")) %>%
@@ -311,18 +314,19 @@ predicted_output %>%
   scale_y_continuous(labels = comma) +
   scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
   theme_bw() +
-  theme(legend.position = c(.9, .1), 
+  theme(legend.position = c(.925, .06), 
         legend.justification = c(1, 0), 
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
         strip.background = element_blank(), 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
-ggsave(paste0("output/", Sys.Date(), "_ga_plots.png"))
-ggsave(paste0("output/", Sys.Date(), "_ga_plots.tiff"))
+ggsave(paste0("output/", Sys.Date(), "_ga_plots.png"), plot = ga_bw)
+ggsave(paste0("output/", Sys.Date(), "_ga_plots.tiff"), plot = ga_bw)
 
 #Color, .tiff
-predicted_output %>%
+ga_col <- 
+  predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
   filter(state %in% c("Reference", "GA1", "GA2", "GA3")) %>%
@@ -341,7 +345,7 @@ predicted_output %>%
   scale_y_continuous(labels = comma) +
   scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
   theme_bw() +
-  theme(legend.position = c(.9, .1), 
+  theme(legend.position = c(.925, .06), 
         legend.justification = c(1, 0), 
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
         strip.background = element_blank(), 
@@ -349,8 +353,28 @@ predicted_output %>%
         panel.grid.minor = element_blank())
   
 
-ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.png"))
-ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.tiff"))
+ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.png"), plot = ga_col)
+ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.tiff"), plot = ga_col)
+
+
+library(ggpubr)
+
+com_bw <- 
+  ggarrange(ga_bw, sd_bw, 
+          labels = c("A", "B"),
+          ncol = 1, nrow = 2)
+
+ggsave(paste0("output/", Sys.Date(), "_combine_bw.png"))
+ggsave(paste0("output/", Sys.Date(), "_combine_bw.tiff"))
+
+com_col <- 
+  ggarrange(ga_col, sd_col, 
+            labels = c("A", "B"),
+            ncol = 1, nrow = 2)
+
+ggsave(paste0("output/", Sys.Date(), "_combine_col.png"))
+ggsave(paste0("output/", Sys.Date(), "_combine_col.tiff"))
+
 
 
 
