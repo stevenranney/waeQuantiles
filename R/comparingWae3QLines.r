@@ -29,11 +29,11 @@ wae_ref <-
 waeInd <- 
   read.table("data/wae_independent.txt", header=T) %>%
   filter((State=="SD" & lake==4)|
-           (State=="SD" & lake==13)|
-           (State=="SD" & lake==25)|
-           (State=="GA" & lake==2)|
-           (State=="GA" & lake==3)|
-           (State=="GA" & lake==4))
+         (State=="SD" & lake==13)|
+         (State=="SD" & lake==25)|
+         (State=="GA" & lake==2)|
+         (State=="GA" & lake==3)|
+         (State=="GA" & lake==4))
 
 wae <- 
   wae_ref %>%
@@ -129,7 +129,6 @@ wae_75_diff %>%
 # Retrieve slope and intercept for each population
 # Same model as above but removing the intercept term so that I can find slope/int
 # estimates for each population, including ref
-
 wae_75_slope_int <- 
   wae %>% 
   rq(log10(weight)~State + log10(length):State - 1, data = ., 
@@ -216,8 +215,7 @@ predicted_output %>%
 predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
-  filter(state != "ref", 
-         state %in% c("SD4", "SD13", "SD25")) %>%
+  filter(state %in% c("ref", "SD4", "SD13", "SD25")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
   geom_line(aes(linetype = state)) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
@@ -243,8 +241,7 @@ ggsave(paste0("output/", Sys.Date(), "_sd_plots.tiff"))
 predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
-  filter(state != "ref", 
-         state %in% c("SD4", "SD13", "SD25")) %>%
+  filter(state %in% c("ref", "SD4", "SD13", "SD25")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
   geom_line(aes(linetype = state)) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
@@ -271,8 +268,7 @@ ggsave(paste0("output/", Sys.Date(), "_sd_plots_color.tiff"))
 predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
-  filter(state != "ref", 
-         state %in% c("GA2", "GA3", "GA4")) %>%
+  filter(state %in% c("ref", "GA2", "GA3", "GA4")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
   geom_line(aes(linetype = state)) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
@@ -298,8 +294,7 @@ ggsave(paste0("output/", Sys.Date(), "_ga_plots.tiff"))
 predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
-  filter(state != "ref", 
-         state %in% c("GA2", "GA3", "GA4")) %>%
+  filter(state %in% c("ref", "GA2", "GA3", "GA4")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
   geom_line(aes(linetype = state)) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
