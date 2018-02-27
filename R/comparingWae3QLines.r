@@ -357,24 +357,26 @@ ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.png"), plot = ga_col)
 ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.tiff"), plot = ga_col)
 
 
-library(ggpubr)
-
-com_bw <- 
-  ggarrange(ga_bw, sd_bw, 
-          labels = c("A", "B"),
-          ncol = 1, nrow = 2)
-
-ggsave(paste0("output/", Sys.Date(), "_combine_bw.png"))
-ggsave(paste0("output/", Sys.Date(), "_combine_bw.tiff"))
-
-com_col <- 
-  ggarrange(ga_col, sd_col, 
-            labels = c("A", "B"),
-            ncol = 1, nrow = 2)
-
-ggsave(paste0("output/", Sys.Date(), "_combine_col.png"))
-ggsave(paste0("output/", Sys.Date(), "_combine_col.tiff"))
-
-
-
-
+##-------------------------------------------------------------------------------
+# Combine two plots into one sheet?
+# library(ggpubr)
+# 
+# com_bw <- 
+#   ggarrange(ga_bw, sd_bw, 
+#           labels = c("A", "B"),
+#           ncol = 1, nrow = 2)
+# 
+# ggsave(paste0("output/", Sys.Date(), "_combine_bw.png"))
+# ggsave(paste0("output/", Sys.Date(), "_combine_bw.tiff"))
+# 
+# com_col <- 
+#   ggarrange(ga_col, sd_col, 
+#             labels = c("A", "B"),
+#             ncol = 1, nrow = 2)
+# 
+# ggsave(paste0("output/", Sys.Date(), "_combine_col.png"))
+# ggsave(paste0("output/", Sys.Date(), "_combine_col.tiff"))
+# 
+# 
+# 
+# 
