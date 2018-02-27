@@ -201,28 +201,49 @@ for(i in 1:length(taus)){
 
 # Convert list of output into a single dataframe
 predicted_output <- 
-  do.call("rbind", predicted_output ) %>%
+  do.call("rbind", predicted_output) %>%
   as.data.frame() %>%
   rename(state = `wae_new$State`, 
-         length = `wae_new$length`)
+         length = `wae_new$length`) %>%
+  mutate(state = state %>% relevel(ref = "ref"), 
+         state = ifelse(state == "GA2", "GA1", 
+                        ifelse(state == "GA3", "GA2", 
+                               ifelse(state == "GA4", "GA3", 
+                                      ifelse(state == "SD4", "SD1", 
+                                             ifelse(state == "SD13", "SD2", 
+                                                    ifelse(state == "SD25", "SD3", "Reference")))))))
 
 # Save to RDS because this takes a while, 8.3 minutes
 predicted_output %>%
   saveRDS(paste0(Sys.Date(), "_predicted_weight_at_length.rds"))
+
+predicted_output <- 
+  readRDS(paste0(Sys.Date(), "_predicted_weight_at_length.rds")) %>%
+  mutate(state = state %>% relevel(ref = "ref"), 
+         state = ifelse(state == "GA2", "GA1", 
+                        ifelse(state == "GA3", "GA2", 
+                               ifelse(state == "GA4", "GA3", 
+                                      ifelse(state == "SD4", "SD1", 
+                                             ifelse(state == "SD13", "SD2", 
+                                                    ifelse(state == "SD25", "SD3", "Reference")))))))
 
 
 # SD LAKES
 predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
-  filter(state %in% c("ref", "SD4", "SD13", "SD25")) %>%
+  filter(state %in% c("Reference", "SD1", "SD2", "SD3")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
-  geom_line(aes(linetype = state)) +
+  geom_line(aes(linetype = state), lwd = 0.65) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
   labs(x= "Quantile", y = "Weight (g)") +
-  scale_fill_grey(guide = "none") +
-  scale_linetype_discrete(name = "State") +
+  scale_fill_manual(name = "State", 
+                    labels = c("Reference", "SD1", "SD2", "SD3"), 
+                    values = gray.colors(4, start = 0.05, end = 0.8, gamma = 2.2, alpha = 0.5)) +
+  scale_linetype_manual(name = "State", 
+                        labels = c("Reference", "SD1", "SD2", "SD3"),
+                        values = c(1,3,4,6)) +
   scale_alpha(guide = "none") +
   scale_y_continuous(labels = comma) +
   scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
@@ -241,14 +262,18 @@ ggsave(paste0("output/", Sys.Date(), "_sd_plots.tiff"))
 predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
-  filter(state %in% c("ref", "SD4", "SD13", "SD25")) %>%
+  filter(state %in% c("Reference", "SD1", "SD2", "SD3")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
-  geom_line(aes(linetype = state)) +
+  geom_line(aes(linetype = state), lwd = 0.65) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
   labs(x= "Quantile", y = "Weight (g)") +
-  scale_fill_discrete(name = "State") +
-  scale_linetype_discrete(name = "State", guide = "none") +
+  scale_fill_manual(name = "State", 
+                    labels = c("Reference", "SD1", "SD2", "SD3"), 
+                    values = hue_pal()(4)) +
+  scale_linetype_manual(name = "State", 
+                        labels = c("Reference", "SD1", "SD2", "SD3"), 
+                        values = c(1,3,4,6)) +
   scale_alpha(guide = "none") +
   scale_y_continuous(labels = comma) +
   scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
@@ -268,14 +293,18 @@ ggsave(paste0("output/", Sys.Date(), "_sd_plots_color.tiff"))
 predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
-  filter(state %in% c("ref", "GA2", "GA3", "GA4")) %>%
+  filter(state %in% c("Reference", "GA1", "GA2", "GA3")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
-  geom_line(aes(linetype = state)) +
+  geom_line(aes(linetype = state), lwd = 0.65) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
   labs(x= "Quantile", y = "Weight (g)") +
-  scale_fill_grey(guide = "none") +
-  scale_linetype_discrete(name = "State") +
+  scale_fill_manual(name = "State", 
+                    labels = c("Reference", "GA1", "GA2", "GA3"), 
+                    values = gray.colors(4, start = 0.05, end = 0.8, gamma = 2.2, alpha = 0.5)) +
+  scale_linetype_manual(name = "State", 
+                        labels = c("Reference", "GA1", "GA2", "GA3"),
+                        values = c(1,3,4,6)) +
   scale_alpha(guide = "none") +
   scale_y_continuous(labels = comma) +
   scale_x_continuous(breaks = seq(0.05, 0.95, by = .15)) +
@@ -294,7 +323,7 @@ ggsave(paste0("output/", Sys.Date(), "_ga_plots.tiff"))
 predicted_output %>%
   rename(weight = fit) %>%
   mutate(length = paste0("TL = ", length)) %>%
-  filter(state %in% c("ref", "GA2", "GA3", "GA4")) %>%
+  filter(state %in% c("Reference", "GA1", "GA2", "GA3")) %>%
   ggplot(aes(x = tau, y = weight, fill = state)) +
   geom_line(aes(linetype = state)) +
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
