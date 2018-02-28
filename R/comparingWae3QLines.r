@@ -1,14 +1,12 @@
 #-----------------------------------------------------------------------------
 # Code to accompany the manuscript 
-# Quantile Regression Estimates of Body Weight for Walleye
-# S. H. Ranney, 2018
+# Quantile Regression Estimates of Body Weight at Length in Walleye
+# S. H. Ranney 2018
 #-----------------------------------------------------------------------------
 
-library(quantreg)
-library(ggplot2)
-library(purrr)
-library(dplyr)
-library(gplots)
+library(quantreg) 
+library(ggplot2) #plotting
+library(dplyr) #code orgnization
 library(scales)
 
 source("R/helper_functions.R")
@@ -87,7 +85,7 @@ predict_by_10mm %>%
 
 
 #-----------------------------------------------------------------------------
-# Approach for obtaining estimates of the differences among populations
+# One approach for obtaining estimates of the differences among populations
 # se="xy",R=1000, mofn=5000 is bootstrap of xy-pairs 5000 of n samples 
 # made 1000 times.
 
@@ -174,6 +172,7 @@ predicted_output <- list()
 
 taus <- seq(0.05, 0.95, by = 0.05)
 
+# The below for loop will takes ~9 minutes to run
 for(i in 1:length(taus)){
   
   #Create model for each tau
@@ -214,20 +213,8 @@ predicted_output <-
          state = state %>% as.factor(), 
          state = state %>% relevel(ref = "Reference"))
 
-# Save to RDS because this takes a while, 8.3 minutes
 predicted_output %>%
   saveRDS(paste0(Sys.Date(), "_predicted_weight_at_length.rds"))
-
-predicted_output <- 
-  readRDS(paste0(Sys.Date(), "_predicted_weight_at_length.rds")) %>%
-  mutate(state = ifelse(state == "GA2", "GA1", 
-                        ifelse(state == "GA3", "GA2", 
-                               ifelse(state == "GA4", "GA3", 
-                                      ifelse(state == "SD4", "SD1", 
-                                             ifelse(state == "SD13", "SD2", 
-                                                    ifelse(state == "SD25", "SD3", "Reference")))))), 
-         state = state %>% as.factor(),
-         state = state %>% relevel(ref = "Reference"))
 
 
 # SD LAKES
@@ -357,26 +344,26 @@ ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.png"), plot = ga_col)
 ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.tiff"), plot = ga_col)
 
 
-##-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Combine two plots into one sheet?
-# library(ggpubr)
-# 
-# com_bw <- 
-#   ggarrange(ga_bw, sd_bw, 
-#           labels = c("A", "B"),
-#           ncol = 1, nrow = 2)
-# 
-# ggsave(paste0("output/", Sys.Date(), "_combine_bw.png"))
-# ggsave(paste0("output/", Sys.Date(), "_combine_bw.tiff"))
-# 
-# com_col <- 
-#   ggarrange(ga_col, sd_col, 
-#             labels = c("A", "B"),
-#             ncol = 1, nrow = 2)
-# 
-# ggsave(paste0("output/", Sys.Date(), "_combine_col.png"))
-# ggsave(paste0("output/", Sys.Date(), "_combine_col.tiff"))
-# 
-# 
-# 
-# 
+library(ggpubr)
+
+com_bw <-
+  ggarrange(ga_bw, sd_bw,
+          labels = c("A", "B"),
+          ncol = 1, nrow = 2)
+
+ggsave(paste0("output/", Sys.Date(), "_combine_bw.png"), width = 8.5, height = 11, units = "in")
+ggsave(paste0("output/", Sys.Date(), "_combine_bw.tiff"), width = 8.5, height = 11, units = "in")
+
+com_col <-
+  ggarrange(ga_col, sd_col,
+            labels = c("A", "B"),
+            ncol = 1, nrow = 2)
+
+ggsave(paste0("output/", Sys.Date(), "_combine_col.png"), width = 8.5, height = 11, units = "in")
+ggsave(paste0("output/", Sys.Date(), "_combine_col.tiff"), width = 8.5, height = 11, units = "in")
+
+
+
+
