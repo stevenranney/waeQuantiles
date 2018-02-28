@@ -228,10 +228,10 @@ sd_bw <-
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
   labs(x= "Quantile", y = "Weight (g)") +
-  scale_fill_manual(name = "State", 
+  scale_fill_manual(name = "Population", 
                     labels = c("Reference", "SD1", "SD2", "SD3"), 
                     values = gray.colors(4, start = 0.05, end = 0.8, gamma = 2.2, alpha = 0.5)) +
-  scale_linetype_manual(name = "State", 
+  scale_linetype_manual(name = "Population", 
                         labels = c("Reference", "SD1", "SD2", "SD3"),
                         values = c(1,3,4,6)) +
   scale_alpha(guide = "none") +
@@ -259,10 +259,10 @@ sd_col <-
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
   labs(x= "Quantile", y = "Weight (g)") +
-  scale_fill_manual(name = "State", 
+  scale_fill_manual(name = "Population", 
                     labels = c("Reference", "SD1", "SD2", "SD3"), 
                     values = alpha(hue_pal()(4), alpha = 0.5)) +
-  scale_linetype_manual(name = "State", 
+  scale_linetype_manual(name = "Population", 
                         labels = c("Reference", "SD1", "SD2", "SD3"), 
                         values = c(1,3,4,6)) +
   scale_alpha(guide = "none") +
@@ -291,10 +291,10 @@ ga_bw <-
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
   labs(x= "Quantile", y = "Weight (g)") +
-  scale_fill_manual(name = "State", 
+  scale_fill_manual(name = "Population", 
                     labels = c("Reference", "GA1", "GA2", "GA3"), 
                     values = gray.colors(4, start = 0.05, end = 0.8, gamma = 2.2, alpha = 0.5)) +
-  scale_linetype_manual(name = "State", 
+  scale_linetype_manual(name = "Population", 
                         labels = c("Reference", "GA1", "GA2", "GA3"),
                         values = c(1,3,4,6)) +
   scale_alpha(guide = "none") +
@@ -322,10 +322,10 @@ ga_col <-
   geom_ribbon(aes(x = tau, ymin = lower, ymax = higher, fill = state, alpha = 0.05)) +
   facet_wrap(~length, scales = "free_y") +
   labs(x= "Quantile", y = "Weight (g)") +
-  scale_fill_manual(name = "State", 
+  scale_fill_manual(name = "Population", 
                     labels = c("Reference", "GA1", "GA2", "GA3"), 
                     values = alpha(hue_pal()(4), alpha = 0.5)) +
-  scale_linetype_manual(name = "State", 
+  scale_linetype_manual(name = "Population", 
                         labels = c("Reference", "GA1", "GA2", "GA3"), 
                         values = c(1,3,4,6)) +
   scale_alpha(guide = "none") +
