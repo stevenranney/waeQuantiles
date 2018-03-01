@@ -214,7 +214,7 @@ predicted_output <-
          state = state %>% relevel(ref = "Reference"))
 
 predicted_output %>%
-  saveRDS(paste0(Sys.Date(), "_predicted_weight_at_length.rds"))
+  saveRDS(paste0("data/", Sys.Date(), "_predicted_weight_at_length.rds"))
 
 
 # SD LAKES
