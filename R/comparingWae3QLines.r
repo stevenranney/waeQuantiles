@@ -345,7 +345,7 @@ ggsave(paste0("output/", Sys.Date(), "_ga_plots_color.tiff"), plot = ga_col)
 
 
 #-------------------------------------------------------------------------------
-# Combine two plots into one sheet?
+# Combine two plots into one image
 library(ggpubr)
 
 com_bw <-
