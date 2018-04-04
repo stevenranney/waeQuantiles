@@ -6,6 +6,8 @@ In addition to the code and data presented here, additional supplemental materia
 
 # News
 
+* 2018-04-04 Revision 2 officially accepted for publication.
+
 * 2018-03-27 Reviews received. Minor revisions only. In progress.
 
 * 2018-03-01 Revision 1 submitted to the NAJFM.
