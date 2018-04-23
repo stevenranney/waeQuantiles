@@ -6,7 +6,7 @@
 /literature
 /R/plots/
 /**/archive/
-/manuscript/archive/
+/manuscript/archive/*
 /reviews
 
 *.tiff
