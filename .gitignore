@@ -6,8 +6,9 @@
 /literature
 /R/plots/
 /**/archive/
-/manuscript/archive/*
+/manuscript/archive/
 /reviews
+archive/
 
 *.tiff
 output/slope_int_estimates_formatted.csv
