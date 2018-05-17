@@ -2,6 +2,8 @@ This repository contains the code and data that are used in the manuscript title
 
 Users can clone the repo and run the analyses contained in the paper and evalute the output for themselves.
 
+If readers have any questions, please feel free to contact me at `Steven.Ranney "at" gmail.com`.
+
 # News
 
 * 2018-04-04 Revision 2 officially accepted for publication.
