@@ -1,3 +1,5 @@
+[View on github](https://github.com/stevenranney/waeQuantiles]
+
 [Published manuscript for the fishheads and stats nerds among the readers.](/manuscript/Ranney_2018_Quantile regression.pdf)
 
 This repository contains the code and data that are used in the manuscript titled "Quantile regression estimates of body weight for walleye."
