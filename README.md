@@ -1,3 +1,6 @@
+waeQuantiles
+============
+
 [View on github.](https://github.com/stevenranney/waeQuantiles)
 
 [Published manuscript for the fishheads and stats nerds among the readers.](/manuscript/Ranney_2018_Quantile regression.pdf)
